@@ -1,0 +1,38 @@
+2023-12-11 15:43:40,645 - INFO - CognitiveFeedbackRouter - __init__ - Instantiating CognitiveFeedbackRouter
+2023-12-11 15:43:40,647 - DEBUG - CognitiveFeedbackRouter - __init__ - Cognitive Feedback Router instantiated.
+2023-12-11 15:43:40,648 - DEBUG - CognitiveFeedbackRouter - run - Cognitive Feedback Router starts.
+2023-12-11 15:43:40,648 - DEBUG - CognitiveFeedbackRouter - wakeup - Starting wakeup() procedure.
+2023-12-11 15:43:40,649 - MURMUR - CognitiveFeedbackRouter - wakeup - Just a second, I'm waking up...
+2023-12-11 15:43:40,649 - DEBUG - CognitiveFeedbackRouter - wakeup - Initializing LLM model from llama-2-70b-chat.Q5_K_M.gguf.
+2023-12-11 15:43:43,945 - DEBUG - CognitiveFeedbackRouter - wakeup - LLM model initialized.
+2023-12-11 15:43:43,946 - INFO - CognitiveFeedbackRouter - attention_switch - Starting infinite attention loop.
+2023-12-11 15:43:43,946 - DEBUG - CognitiveFeedbackRouter - attention_switch - No conversation and no new conclusions detected. Preparing to switch to Default Mode.
+2023-12-11 15:43:43,947 - DEBUG - CognitiveFeedbackRouter - get_user_input - Starting user input loop
+2023-12-11 15:44:44,520 - DEBUG - CognitiveFeedbackRouter - attention_switch - Entering Default Mode.
+2023-12-11 15:44:44,520 - DEBUG - DefaultModeNetwork - __init__ - Instantiating DefaultModeNetwork with conclusions_folder_path: conclusions.
+2023-12-11 15:44:44,521 - DEBUG - ShortTermMemory - __init__ - Instantiating ShortTermMemory with Short Term Memory path: conversations/short-term-memory.json
+2023-12-11 15:44:44,522 - DEBUG - DefaultModeNetwork - run - Checking if there are any topics to be analyzed deeper.
+2023-12-11 15:44:44,522 - DEBUG - ShortTermMemory - recall_all_keywords - Reading all keywords from conversations/short-term-memory.json.
+2023-12-11 15:44:44,527 - DEBUG - DefaultModeNetwork - run - All keywords: ['self-improvement']. Moving to interesting keyword selection.
+2023-12-11 15:44:44,528 - DEBUG - DefaultModeNetwork - interesting_keywords_selection - Asking LLM to select interesting keywords.
+2023-12-11 15:59:19,819 - DEBUG - DefaultModeNetwork - interesting_keywords_selection - Interesting keywords found: ['self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', ' mindfulness', 'resilience', 'self-care', 'learning', 'self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', 'mindfulness', 'resilience', 'self-care', 'learning']
+2023-12-11 15:59:19,820 - DEBUG - DefaultModeNetwork - run - Interesting keywords selected.
+2023-12-11 15:59:19,821 - DEBUG - DefaultModeNetwork - fetch_conversations - Reaching to Short Term memory for for all the files related to: ['self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', ' mindfulness', 'resilience', 'self-care', 'learning', 'self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', 'mindfulness', 'resilience', 'self-care', 'learning']
+2023-12-11 15:59:19,821 - DEBUG - ShortTermMemory - search_files - Searching in conversations/short-term-memory.json for files related to keywords: ['self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', ' mindfulness', 'resilience', 'self-care', 'learning', 'self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', 'mindfulness', 'resilience', 'self-care', 'learning'].
+2023-12-11 15:59:19,822 - DEBUG - ShortTermMemory - search_files - Loaded short term memory.
+2023-12-11 15:59:19,823 - DEBUG - DefaultModeNetwork - fetch_conversations - Ordering concatenation of identified files.
+2023-12-11 15:59:19,823 - DEBUG - ShortTermMemory - concatenate_conversations - Concatenating selected conversations into one file.
+2023-12-11 15:59:19,824 - DEBUG - DefaultModeNetwork - run - Concatenated conversations received.
+2023-12-11 15:59:19,824 - ERROR - DefaultModeNetwork - run - Concatenated conversations turned our to be empty string.
+2023-12-11 15:59:19,825 - DEBUG - DefaultModeNetwork - run - Interesting or not, forgetting conversations about ['self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', ' mindfulness', 'resilience', 'self-care', 'learning', 'self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', 'mindfulness', 'resilience', 'self-care', 'learning'].
+2023-12-11 15:59:19,825 - DEBUG - ShortTermMemory - forget_keywords - Clearing ['self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', ' mindfulness', 'resilience', 'self-care', 'learning', 'self-awareness', 'personal growth', 'positive thinking', 'motivation', 'productivity', 'time management', 'goal setting', 'habits', 'mindfulness', 'resilience', 'self-care', 'learning'] from conversations/short-term-memory.json.
+2023-12-11 15:59:19,827 - DEBUG - ShortTermMemory - forget_keywords - Selected keywords removed from conversations/short-term-memory.json.
+2023-12-11 15:59:19,828 - DEBUG - CognitiveFeedbackRouter - attention_switch - Default Mode quit.
+2023-12-11 15:59:19,828 - DEBUG - CognitiveFeedbackRouter - attention_switch - No conversation and no new conclusions detected. Preparing to switch to Default Mode.
+2023-12-11 16:00:20,421 - DEBUG - CognitiveFeedbackRouter - attention_switch - Entering Default Mode.
+2023-12-11 16:00:20,422 - DEBUG - DefaultModeNetwork - __init__ - Instantiating DefaultModeNetwork with conclusions_folder_path: conclusions.
+2023-12-11 16:00:20,422 - DEBUG - ShortTermMemory - __init__ - Instantiating ShortTermMemory with Short Term Memory path: conversations/short-term-memory.json
+2023-12-11 16:00:20,423 - DEBUG - DefaultModeNetwork - run - Checking if there are any topics to be analyzed deeper.
+2023-12-11 16:00:20,423 - DEBUG - ShortTermMemory - recall_all_keywords - Reading all keywords from conversations/short-term-memory.json.
+2023-12-11 16:00:20,424 - DEBUG - DefaultModeNetwork - run - All keywords: ['self-improvement']. Moving to interesting keyword selection.
+2023-12-11 16:00:20,425 - DEBUG - DefaultModeNetwork - interesting_keywords_selection - Asking LLM to select interesting keywords.

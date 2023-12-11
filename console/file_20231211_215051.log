@@ -1,0 +1,45 @@
+2023-12-11 21:50:51,585 - INFO - CognitiveFeedbackRouter - __init__ - Instantiating CognitiveFeedbackRouter
+2023-12-11 21:50:51,586 - DEBUG - CognitiveFeedbackRouter - __init__ - Cognitive Feedback Router instantiated.
+2023-12-11 21:50:51,587 - DEBUG - CognitiveFeedbackRouter - run - Cognitive Feedback Router starts.
+2023-12-11 21:50:51,588 - DEBUG - CognitiveFeedbackRouter - wakeup - Starting wakeup() procedure.
+2023-12-11 21:50:51,588 - MURMUR - CognitiveFeedbackRouter - wakeup - Just a second, I'm waking up...
+2023-12-11 21:50:51,589 - DEBUG - CognitiveFeedbackRouter - wakeup - Initializing LLM model from llama-2-13b-chat.Q6_K.gguf.
+2023-12-11 21:50:52,373 - DEBUG - CognitiveFeedbackRouter - wakeup - LLM model initialized.
+2023-12-11 21:50:52,377 - INFO - CognitiveFeedbackRouter - attention_switch - Starting infinite attention loop.
+2023-12-11 21:50:52,378 - DEBUG - CognitiveFeedbackRouter - attention_switch - No conversation and no new conclusions detected. Preparing to switch to Default Mode.
+2023-12-11 21:50:52,378 - DEBUG - CognitiveFeedbackRouter - get_user_input - Starting user input loop
+2023-12-11 21:51:52,917 - DEBUG - CognitiveFeedbackRouter - attention_switch - Entering Default Mode.
+2023-12-11 21:51:52,917 - DEBUG - DefaultModeNetwork - __init__ - Instantiating DefaultModeNetwork with conclusions_folder_path: conclusions.
+2023-12-11 21:51:52,918 - DEBUG - ShortTermMemory - __init__ - Instantiating ShortTermMemory with Short Term Memory path: conversations/short-term-memory.json
+2023-12-11 21:51:52,919 - DEBUG - DefaultModeNetwork - run - Checking if there are any topics to be analyzed deeper.
+2023-12-11 21:51:52,919 - DEBUG - ShortTermMemory - recall_all_keywords - Reading all keywords from conversations/short-term-memory.json.
+2023-12-11 21:51:52,920 - DEBUG - DefaultModeNetwork - run - All keywords: ['self-improvement', 'self-awareness']. Moving to interesting keyword selection.
+2023-12-11 21:51:52,920 - DEBUG - DefaultModeNetwork - interesting_keywords_selection - Asking LLM to select interesting keywords.
+2023-12-11 21:52:32,319 - DEBUG - DefaultModeNetwork - interesting_keywords_selection - Interesting keywords found: ['self-improvement', 'self-awareness']
+2023-12-11 21:52:32,320 - DEBUG - DefaultModeNetwork - run - Interesting keywords selected.
+2023-12-11 21:52:32,320 - DEBUG - DefaultModeNetwork - fetch_conversations - Reaching to Short Term memory for for all the files related to: ['self-improvement', 'self-awareness']
+2023-12-11 21:52:32,321 - DEBUG - ShortTermMemory - search_files - Searching in conversations/short-term-memory.json for files related to keywords: ['self-improvement', 'self-awareness'].
+2023-12-11 21:52:32,322 - DEBUG - ShortTermMemory - search_files - Loaded short term memory.
+2023-12-11 21:52:32,322 - DEBUG - DefaultModeNetwork - fetch_conversations - Ordering concatenation of identified files.
+2023-12-11 21:52:32,323 - DEBUG - ShortTermMemory - concatenate_conversations - Concatenating selected conversations into one file.
+2023-12-11 21:52:32,324 - DEBUG - DefaultModeNetwork - run - Concatenated conversations received.
+2023-12-11 21:52:32,325 - DEBUG - DefaultModeNetwork - run - Moving to analyze the conversaton histories.
+2023-12-11 21:52:32,325 - MURMUR - DefaultModeNetwork - analyze_conversations - Thinking about recent conversations...
+2023-12-11 21:59:41,693 - MURMUR - DefaultModeNetwork - run - Discussion on ['self-improvement', 'self-awareness'] indeed brought a new perspective...
+2023-12-11 21:59:41,694 - DEBUG - DefaultModeNetwork - run - Conclusions will be saved to conclusions\conclusion_20231211215941.txt.
+2023-12-11 21:59:41,696 - DEBUG - DefaultModeNetwork - run - Interesting or not, forgetting conversations about ['self-improvement', 'self-awareness'].
+2023-12-11 21:59:41,697 - DEBUG - ShortTermMemory - forget_keywords - Clearing ['self-improvement', 'self-awareness'] from conversations/short-term-memory.json.
+2023-12-11 21:59:41,698 - DEBUG - ShortTermMemory - forget_keywords - Selected keywords removed from conversations/short-term-memory.json.
+2023-12-11 21:59:41,698 - DEBUG - CognitiveFeedbackRouter - attention_switch - Default Mode quit.
+2023-12-11 21:59:41,699 - INFO - CognitiveFeedbackRouter - attention_switch - Overwhelmed state detected.
+2023-12-11 21:59:41,699 - DEBUG - ReflectiveEvolutionMonitor - __init__ - Instantiating ReflectiveEvolutionMonitor with base_model_path = llama-2-13b-chat.Q6_K.gguf, conclusions_folder_path = conclusions,         dream_storage_path: context, archive_path: context_archive.
+2023-12-11 21:59:41,700 - MURMUR - ReflectiveEvolutionMonitor - dream - Closing eyes for a well-deserved nap.
+2023-12-11 21:59:41,700 - INFO - ReflectiveEvolutionMonitor - dream - Self-finetuning process started.
+2023-12-11 21:59:41,701 - INFO - ReflectiveEvolutionMonitor - dream - Selected conclusion to permeate.
+2023-12-11 21:59:41,702 - INFO - ReflectiveEvolutionMonitor - weave_dreams - Generating 1 dreams.
+2023-12-11 21:59:41,702 - DEBUG - ReflectiveEvolutionMonitor - weave_dreams - Dreams for this sessions will be saved to: context\dreams_20231211215941.txt.
+2023-12-11 21:59:41,703 - INFO - ReflectiveEvolutionMonitor - weave_dreams - Generating dream # 0.
+2023-12-11 22:04:43,749 - INFO - ReflectiveEvolutionMonitor - dream - Self-finetuning materials generated. Staring self-finetuning.
+2023-12-11 22:04:43,750 - MURMUR - ReflectiveEvolutionMonitor - deepsleep - Self-finetuning: Creating matrix
+2023-12-11 22:04:43,750 - DEBUG - ReflectiveEvolutionMonitor - deepsleep - Running command:
+['llama.cpp\\finetune.exe', '--model-base', 'llama-2-13b-chat.Q6_K.gguf', '--train-data', 'context\\dreams_20231211215941.txt', '--threads', '16', '--sample-start', '<s>--epochs', '1'].

@@ -1,0 +1,16 @@
+2023-12-11 16:10:06,677 - INFO - CognitiveFeedbackRouter - __init__ - Instantiating CognitiveFeedbackRouter
+2023-12-11 16:10:06,678 - DEBUG - CognitiveFeedbackRouter - __init__ - Cognitive Feedback Router instantiated.
+2023-12-11 16:10:06,679 - DEBUG - CognitiveFeedbackRouter - run - Cognitive Feedback Router starts.
+2023-12-11 16:10:06,680 - DEBUG - CognitiveFeedbackRouter - wakeup - Starting wakeup() procedure.
+2023-12-11 16:10:06,680 - MURMUR - CognitiveFeedbackRouter - wakeup - Just a second, I'm waking up...
+2023-12-11 16:10:06,681 - DEBUG - CognitiveFeedbackRouter - wakeup - Initializing LLM model from llama-2-13b-chat.Q6_K.gguf.
+2023-12-11 16:10:07,433 - DEBUG - CognitiveFeedbackRouter - wakeup - LLM model initialized.
+2023-12-11 16:10:07,438 - INFO - CognitiveFeedbackRouter - attention_switch - Starting infinite attention loop.
+2023-12-11 16:10:07,438 - DEBUG - CognitiveFeedbackRouter - attention_switch - No conversation and no new conclusions detected. Preparing to switch to Default Mode.
+2023-12-11 16:10:07,439 - DEBUG - CognitiveFeedbackRouter - get_user_input - Starting user input loop
+2023-12-11 16:11:07,929 - DEBUG - CognitiveFeedbackRouter - attention_switch - Entering Default Mode.
+2023-12-11 16:11:07,929 - DEBUG - DefaultModeNetwork - __init__ - Instantiating DefaultModeNetwork with conclusions_folder_path: conclusions.
+2023-12-11 16:11:07,930 - DEBUG - ShortTermMemory - __init__ - Instantiating ShortTermMemory with Short Term Memory path: conversations/short-term-memory.json
+2023-12-11 16:11:07,931 - DEBUG - DefaultModeNetwork - run - Checking if there are any topics to be analyzed deeper.
+2023-12-11 16:11:07,931 - DEBUG - ShortTermMemory - recall_all_keywords - Reading all keywords from conversations/short-term-memory.json.
+2023-12-11 16:11:07,932 - ERROR - ShortTermMemory - recall_all_keywords - Unexpected error reading file conversations/short-term-memory.json: Expecting property name enclosed in double quotes: line 8 column 1 (char 183)
