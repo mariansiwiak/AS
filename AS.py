@@ -161,7 +161,7 @@ class StemUtility:
             source_path = os.path.join(source_dir, source_file)
             
         
-        destination_dir = '_'.join([source_path, archive_suffix])
+        destination_dir = '_'.join([source_dir, archive_suffix])
         directories_available = StemUtility.prepare_directory(destination_dir)
         if not directories_available:
             return False
@@ -782,7 +782,7 @@ class ReflectiveEvolutionMonitor:
             lora_tool_path,
             "--model-base", self._base_model_path,
             "--model-out", tmp_model_path,
-            "--lora-scaled", self._latest_model_path, self.lora_weight
+            "--lora-scaled", self._latest_lora_path, self.lora_weight
         ]
 
         self.logger.murmur(f"Self-finetuning: Merging weights")
@@ -1071,8 +1071,7 @@ class CognitiveFeedbackRouter:
         self.pfc = LlamaCpp(model_path=self._model_path, 
                             n_ctx=4096,
                             max_tokens=4000,
-                            n_batch=2)
-        self.logger.debug(f"LLM model initialized.")                        
+                            n_batch=88888888   self.logger.debug(f"LLM model initialized.")                        
         self.overwhelmed.clear()
         self._conversation_handler = LanguageProcessingModule(self.pfc, self.engaged)            
         asyncio.create_task(self._conversation_handler.get_user_input())
