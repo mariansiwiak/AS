@@ -1046,9 +1046,8 @@ class CognitiveFeedbackRouter:
         self.pfc = LlamaCpp(model_path=self._model_path, 
                             n_ctx=4096,
                             max_tokens=4000,
-                            n_batch=8,
-                            self.logger.debug(f"LLM model initialized.")
-                           )                     
+                            n_batch=8)
+        self.logger.debug(f"LLM model initialized.")                 
         self.overwhelmed.clear()
         self._conversation_handler = LanguageProcessingModule(self.pfc, self.engaged)            
         asyncio.create_task(self._conversation_handler.get_user_input())
