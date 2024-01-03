@@ -24,8 +24,7 @@ import subprocess
 import logging
 
 
-# In[2]:
-
+## Logging utility
 
 def setup_custom_log_levels():
     # Define custom logging levels
@@ -106,11 +105,7 @@ def setup_logging(file_log_level: int = 10, console_log_level: int = 10):
 # Call the setup function
 setup_logging()
 
-
-# ### Stem
-
-# In[2]:
-
+# Stem
 
 class StemUtility:
     """
@@ -329,10 +324,7 @@ class StemUtility:
             raise Exception(f"At least we tried... {e}") from e 
 
 
-# ### Short-Term Memory
-
-# In[4]:
-
+# Short-Term Memory (STM)
 
 class ShortTermMemory:
     """
@@ -481,10 +473,7 @@ class ShortTermMemory:
             return False
 
 
-# ### Default Mode Network
-
-# In[5]:
-
+# Default Mode Network (DMN)
 
 class DefaultModeNetwork:
     """
@@ -611,10 +600,7 @@ class DefaultModeNetwork:
         self.engaged.clear()
 
 
-# ### REM
-
-# In[6]:
-
+# Reflective Evolution Monitor (REM)
 
 class ReflectiveEvolutionMonitor:
     """
@@ -731,7 +717,6 @@ class ReflectiveEvolutionMonitor:
             with open(dreams_path, 'a') as file:  # Open and append each dream, then close the file
                 file.write(dream + '\n')
         return dreams_path
-
     
     async def _deepsleep(self, dreams_path: str) -> None:
         """
@@ -827,10 +812,7 @@ class ReflectiveEvolutionMonitor:
         self.logger.info(f"Self-finetuning session ended.")        
 
 
-# ### Sensory Signal Processing
-
-# In[7]:
-
+# Sensory Signal Processing (SSP)
 
 class SensorySignalProcessing(ABC):
     """
@@ -881,6 +863,8 @@ class SensorySignalProcessing(ABC):
         Abstract method to save the interaction history.
         """
         pass
+
+## Language Processing Module (LPM)
 
 class LanguageProcessingModule(SensorySignalProcessing):
     """
@@ -1028,14 +1012,11 @@ class LanguageProcessingModule(SensorySignalProcessing):
             self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
 
 
-# ### CFR
-
-# In[8]:
-
+# Cognitive Feeback Router (CFR)
 
 class CognitiveFeedbackRouter:
     
-    def __init__(self, model_path: str = "llama-2-13b-chat.Q6_K.gguf", dmn_countdown: int = 1):
+    def __init__(self, model_path: str = "llama-2-13b-chat.Q6_K.gguf", dmn_countdown: int = 60):
         """
         A class that manages the routing of cognitive feedback based on user input and system states.
     
@@ -1108,20 +1089,5 @@ class CognitiveFeedbackRouter:
                 await asyncio.sleep(1)                
 
 
-# In[9]:
-
-
-AS = CognitiveFeedbackRouter(model_path='llama-2-13b-chat.Q6_K.gguf')
-
-
-# In[10]:
-
-
+AS = CognitiveFeedbackRouter(model_path='llama-2-13b-chat.Q6_K.gguf', dmn_countdown=360)
 asyncio.run(AS.attention_switch())
-
-
-# In[ ]:
-
-
-
-
