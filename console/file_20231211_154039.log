@@ -1,6 +1,0 @@
-2023-12-11 15:40:46,169 - INFO - CognitiveFeedbackRouter - __init__ - Instantiating CognitiveFeedbackRouter
-2023-12-11 15:40:46,170 - DEBUG - CognitiveFeedbackRouter - __init__ - Cognitive Feedback Router instantiated.
-2023-12-11 15:40:46,171 - DEBUG - CognitiveFeedbackRouter - run - Cognitive Feedback Router starts.
-2023-12-11 15:40:46,171 - DEBUG - CognitiveFeedbackRouter - wakeup - Starting wakeup() procedure.
-2023-12-11 15:40:46,171 - MURMUR - CognitiveFeedbackRouter - wakeup - Just a second, I'm waking up...
-2023-12-11 15:40:46,171 - DEBUG - CognitiveFeedbackRouter - wakeup - Initializing LLM model from llama-2-70b-chat.Q5_K_M.gguf.
