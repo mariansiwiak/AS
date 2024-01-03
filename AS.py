@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 from langchain.chains import ConversationChain
