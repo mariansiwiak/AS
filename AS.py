@@ -1,7 +1,4 @@
 from langchain.llms import LlamaCpp
-from langchain.prompts import PromptTemplate
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
 
 import asyncio
 
@@ -26,7 +23,7 @@ def setup_custom_log_levels():
     logging.addLevelName(MURMUR_LEVEL_NUM, "MURMUR")
     def log_murmur(self, message, *args, **kwargs):
         """ 
-        Logging of PFC actions.
+        Logging PFC actions.
         """
         
         if self.isEnabledFor(MURMUR_LEVEL_NUM):
@@ -37,7 +34,7 @@ def setup_custom_log_levels():
     logging.addLevelName(FLAG_LEVEL_NUM, "FLAG")
     def log_flag(self, message, *args, **kwargs):
         """
-        Logging of status flags statuses.
+        Logging status flags statuses.
         """
         
         if self.isEnabledFor(FLAG_LEVEL_NUM):
@@ -48,7 +45,7 @@ def setup_custom_log_levels():
     logging.addLevelName(PROMPTING_LEVEL_NUM, "PROMPTING")
     def log_prompting(self, message, *args, **kwargs):
         """
-        Logging of complete prompt messages sent to PFC. 
+        Logging complete prompt messages sent to PFC. 
         """
         
         if self.isEnabledFor(PROMPTING_LEVEL_NUM):
@@ -59,7 +56,7 @@ def setup_custom_log_levels():
     logging.addLevelName(MONOLOGUE_LEVEL_NUM, "MONOLOGUE")
     def log_monologue(self, message, *args, **kwargs):
         """
-        Logging of PFC internal monologue.
+        Logging PFC internal monologue.
         """
         
         if self.isEnabledFor(MONOLOGUE_LEVEL_NUM):
@@ -88,7 +85,7 @@ def setup_logging(file_log_level: int = 10, console_log_level: int = 10):
     console_handler.setFormatter(formatter)
 
     root_logger = logging.getLogger()
-    root_logger.setLevel(min([file_log_level, console_log_level]))  # Set the lowest overall level to log
+    root_logger.setLevel(min([file_log_level, console_log_level])) 
 
     # Clear existing handlers (if any), and then add new handlers
     if root_logger.hasHandlers():
@@ -96,11 +93,9 @@ def setup_logging(file_log_level: int = 10, console_log_level: int = 10):
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
 
-# Call the setup function
 setup_logging()
 
 # Stem
-
 class StemUtility:
     """
     A class for managing and retrieving predefined prompts.
@@ -131,7 +126,7 @@ class StemUtility:
         return datetime.now().strftime("%Y%m%d%H%M%S")
 
     @staticmethod
-    def archive(source_dir: str, source_file: str = None, archive_suffix='archive'):
+    def archive(source_dir: str, source_file: str | None = None, archive_suffix='archive'):
         """
         Moves processed file to the respective archive folder.
 
@@ -319,7 +314,6 @@ class StemUtility:
 
 
 # Short-Term Memory (STM)
-
 class ShortTermMemory:
     """
     A class to manage a short-term memory storage system for conversations.
@@ -451,7 +445,7 @@ class ShortTermMemory:
         except Exception as e:
             self.logger.error(f"Unexpected error reading Short Term Memory file {self._stm_path}: {e}")
 
-    def recall_all_keywords(self) -> list:
+    def recall_all_keywords(self) -> list | bool:
         """
         Retrieves a list of all keywords stored in memory.
 
@@ -466,9 +460,7 @@ class ShortTermMemory:
         else:
             return False
 
-
 # Default Mode Network (DMN)
-
 class DefaultModeNetwork:
     """
     A class designed to integrate a language learning model (LLM) with a short-term memory storage system.
@@ -595,7 +587,6 @@ class DefaultModeNetwork:
 
 
 # Reflective Evolution Monitor (REM)
-
 class ReflectiveEvolutionMonitor:
     """
     A class designed to enable a language learning model (LLM) to self-reflect and evolve based on the conclusions drawn from user interactions.
@@ -670,7 +661,7 @@ class ReflectiveEvolutionMonitor:
         self._conclusions = StemUtility.memory_read(self._conclusion_file)
         return True
 
-    async def _spin_dream(self, dream_prompt) -> str:
+    async def _spin_dream(self, dream_prompt: str) -> str | None:
         """
         Prepares a single piece of data required for the fine-tuning process by interpreting the summary content.
 
@@ -683,11 +674,27 @@ class ReflectiveEvolutionMonitor:
 
         dream_content = self.pfc(dream_prompt)
         self.logger.monologue(f"I had a dream:\n{dream_content}.")
-        dream = self._dream_prompt_template.replace("{dream_content}", dream_content) 
-        return dream
+
+        try:
+            stimulus_start = dream_content.index('**QUESTION**') + len('**QUESTION**')
+            response_start = dream_content.index('**RESPONSE**')
+            end_tag = prompt.index('**END**')
+    
+            dreamt_stimulus = prompt[stimulus_start:response_start].strip()
+            self.logger.prompt(f"Dreamt stimulus:\n{dreamt_stimulus}.")
+            dreamt_response = prompt[response_start + len('**RESPONSE**'):end_tag].strip()
+            self.logger.prompt(f"Dreamt response:\n{dreamt_response}.")
+
+            dream = self._dream_prompt_template.replace("{stimulus}", dreamt_stimulus) 
+            dream = dream.replace("{response}", dreamt_response) 
+            return dream
+        
+        except ValueError as e:
+            return None
+    
 
     
-    async def _weave_dreams(self, num_dreams) -> str:
+    async def _weave_dreams(self, num_dreams: int) -> str:
         """
         Generates a specified number of materials (dreams) and writes them into a single text file.
         Each 'dream' is appended to the file as it is generated.
@@ -704,12 +711,15 @@ class ReflectiveEvolutionMonitor:
         self.logger.debug(f"Dreams for this sessions will be saved to: {dreams_path}.")        
         dream_spinning_prompt = self._dream_spinning_prompt_template.replace("{adaptation_summary}", self._conclusions) 
         self.logger.prompt(f"Prompt for generating training material from conversation conclusions:\n{dream_spinning_prompt}.")   
-        
-        for i in range(num_dreams):
+
+        generated_dreams = 0
+        while generated_dreams < num_dreams:
             self.logger.info(f"Generating dream # {i}.")
             dream = await self._spin_dream(dream_spinning_prompt)
-            with open(dreams_path, 'a') as file:  # Open and append each dream, then close the file
-                file.write(dream + '\n')
+            if dream:
+                with open(dreams_path, 'a') as file:  # Open and append each dream, then close the file
+                    file.write(dream + '\n')
+                generated_dreams += 1
         return dreams_path
     
     async def _deepsleep(self, dreams_path: str) -> None:
@@ -807,7 +817,6 @@ class ReflectiveEvolutionMonitor:
 
 
 # Sensory Signal Processing (SSP)
-
 class SensorySignalProcessing(ABC):
     """
     Abstract class for a stimulus processing module.
@@ -859,7 +868,6 @@ class SensorySignalProcessing(ABC):
         pass
 
 ## Language Processing Module (LPM)
-
 class LanguageProcessingModule(SensorySignalProcessing):
     """
     A class that manages the interaction between a human user and a language learning model (LLM).
@@ -892,12 +900,8 @@ class LanguageProcessingModule(SensorySignalProcessing):
         self.ready_for_input = asyncio.Event()
         self.ready_for_input.set()  # Initially set to ready
 
-        conversation_prompt_template = StemUtility.get_prompt("human_interaction")
-        self._conversation_prompt = PromptTemplate.from_template(conversation_prompt_template)
-        self.logger.prompt(f"Conversation prompt:\n{self._conversation_prompt}.")
-
-        self._chat_memory = None
-        self._conversation_chain = None        
+        self._conversation_prompt = StemUtility.get_prompt("human_interaction")
+        self._interaction_history = ''
 
         self._keywords_generation_prompt_template = StemUtility.get_prompt("keyword_generation")
     
@@ -910,9 +914,11 @@ class LanguageProcessingModule(SensorySignalProcessing):
         or when the inactivity limit is reached.
         """
         self.engaged.set()
-        self._chat_memory = ConversationBufferMemory()
-        self._conversation_chain = ConversationChain(llm=self.pfc, prompt=self._conversation_prompt, memory=self._chat_memory) 
+        
+        
+        self.logger.prompt(f"Conversation prompt template:\n{self._conversation_prompt}.")        
         self.logger.debug(f"Initiated interaction")        
+        
         while True:
             if not self.ready_for_input.is_set():
                 self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
@@ -921,11 +927,18 @@ class LanguageProcessingModule(SensorySignalProcessing):
                 if self.stimulus.lower() == "end chat":
                     await self._end_interaction()
                     break
-
-                self.logger.monologue(f"LLM will receive: {self._conversation_prompt.invoke({'input':self.stimulus, 'history': self._chat_memory.load_memory_variables(inputs={})['history']})}")
-                self.logger.debug(f"Awaiting LLM response")        
-                response = await self._conversation_chain.apredict(input=self.stimulus)
+              
+                self._conversation_prompt += f"{self.stimulus} [/INST] "
+                self._interaction_history += f"Human: {self.stimulus}\n"
+                
+                self.logger.monologue(f"LLM will receive: {self._conversation_prompt}")
+                self.logger.debug(f"Awaiting LLM response")
+                response = self.pfc(self._conversation_prompt)
                 print("AI:", response)
+
+                self._conversation_prompt += f"{response}</s><s> [INST] "
+                self._interaction_history += f"AI: {response}\n"
+                
                 self.ready_for_input.set()  # Signal that the handler is ready for new input
                 self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
                 self._inactivity_count = 0
@@ -941,11 +954,12 @@ class LanguageProcessingModule(SensorySignalProcessing):
         """
         Ends the conversation.
 
-        This method saves the conversation history, clears event flags, and performs
-        necessary cleanup actions.
+        This method saves the conversation history, clears event flags, and performs necessary cleanup actions.
         """
         self.logger.debug(f"Conversation cleanup started.")        
         self._save_interaction_history()
+        self._conversation_prompt = StemUtility.get_prompt("human_interaction")
+        self._interaction_history = ''
         self.ready_for_input.set()
         self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
         self._inactivity_count = 0
@@ -961,10 +975,9 @@ class LanguageProcessingModule(SensorySignalProcessing):
         Returns:
             list: A list of keywords summarizing the conversation.
         """
-        self.logger.info(f"Conversation summarization started.")        
-        chat_history = self._chat_memory.load_memory_variables(inputs={})['history']
-        self.logger.debug(f"Chat history loaded:\n{chat_history}")    
-        keywords_generation_prompt = self._keywords_generation_prompt_template.replace("{chat_history}", chat_history)
+        self.logger.info(f"Interaction summarization started.")        
+        self.logger.debug(f"Interaction history:\n{self._interaction_history}")    
+        keywords_generation_prompt = self._keywords_generation_prompt_template.replace("{chat_history}", self._interaction_history)
         self.logger.prompt(f"Prompt for generating keywords from conversation:\n{keywords_generation_prompt}.")          
         keywords_generated_raw_output = self.pfc(keywords_generation_prompt)
         self.logger.monologue(f"Full text for summarizing conversation with keywords:\n{keywords_generated_raw_output}")  
@@ -980,14 +993,13 @@ class LanguageProcessingModule(SensorySignalProcessing):
         """
         self.logger.info(f"Started conversation saving.")        
         interaction_keywords = self._summarize_interaction()
-        interaction_history = self._chat_memory.load_memory_variables(inputs={})['history']
         memory_path = os.path.join(self._interaction_storage_path, f"conversation_{StemUtility.get_timestamp()}.txt")
-        self.logger.debug(f"This conversation will be saved to: {conversation_path}")                
-        StemUtility.memory_write(memory_path, interaction_history)
+        self.logger.debug(f"This conversation will be saved to: {memory_path}")                
+        StemUtility.memory_write(memory_path, self._interaction_history)
 
         # Update the ShortTermMemory with the conversat|ion and its keywords
         stm = ShortTermMemory()
-        stm.memorize(conversation_keywords, conversation_path)
+        stm.memorize(conversation_keywords, memory_path)
     
     async def get_user_input(self):
         """
