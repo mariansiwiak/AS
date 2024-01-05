@@ -312,6 +312,16 @@ class StemUtility:
             # Reraise the exception with a custom message
             raise Exception(f"At least we tried... {e}") from e 
 
+    @staticmethod
+    def clean_string(s):
+        # This regular expression finds the first occurrence of any letter in the string
+        match = re.search("[a-zA-Z]", s)
+        if match:
+            # If a letter is found, return the string starting from that letter
+            return s[match.start():]
+        else:
+            # If no letter is found, return an empty string or handle as needed
+            return ""
 
 # Short-Term Memory (STM)
 class ShortTermMemory:
@@ -678,11 +688,14 @@ class ReflectiveEvolutionMonitor:
         try:
             stimulus_start = dream_content.index('**QUESTION**') + len('**QUESTION**')
             response_start = dream_content.index('**RESPONSE**')
-            end_tag = prompt.index('**END**')
+            end_tag = dream_content.index('**END**')
     
-            dreamt_stimulus = prompt[stimulus_start:response_start].strip()
+            dreamt_stimulus = dream_content[stimulus_start:response_start].strip()
+            dreamt_stimulus = StemUtility.clean_string(dreamt_stimulus)
             self.logger.prompt(f"Dreamt stimulus:\n{dreamt_stimulus}")
-            dreamt_response = prompt[response_start + len('**RESPONSE**'):end_tag].strip()
+            
+            dreamt_response = dream_content[response_start + len('**RESPONSE**'):end_tag].strip()
+            dreamt_response = StemUtility.clean_string(dreamt_response)
             self.logger.prompt(f"Dreamt response:\n{dreamt_response}")
 
             dream = self._dream_prompt_template.replace("{stimulus}", dreamt_stimulus) 
@@ -713,7 +726,7 @@ class ReflectiveEvolutionMonitor:
 
         generated_dreams = 0
         while generated_dreams < num_dreams:
-            self.logger.info(f"Generating dream # {i}.")
+            self.logger.info(f"Generating dream # {generated_dreams}.")
             dream = await self._spin_dream(dream_spinning_prompt)
             if dream:
                 with open(dreams_path, 'a') as file:  # Open and append each dream, then close the file
@@ -810,9 +823,9 @@ class ReflectiveEvolutionMonitor:
         self.logger.info(f"Selected conclusion to permeate.")
         dreams_path = await self._weave_dreams(self._dreams_number)  # Generate 50 materials, modify as needed
         self.logger.info(f"Self-finetuning materials generated. Staring self-finetuning.")        
-        await self._deepsleep(dreams_path)
-        self._dream_prunning()
-        self.logger.info(f"Self-finetuning session ended.")        
+        #await self._deepsleep(dreams_path)
+        #self._dream_prunning()
+        #self.logger.info(f"Self-finetuning session ended.")        
 
 
 # Sensory Signal Processing (SSP)
@@ -1095,5 +1108,5 @@ class CognitiveFeedbackRouter:
                 await asyncio.sleep(1)                
 
 
-AS = CognitiveFeedbackRouter(model_path='llama-2-13b-chat.Q6_K.gguf', dmn_countdown=360)
+AS = CognitiveFeedbackRouter(model_path='llama-2-13b-chat.Q6_K.gguf', dmn_countdown=10)
 asyncio.run(AS.attention_switch())
