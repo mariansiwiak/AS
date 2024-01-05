@@ -336,7 +336,7 @@ class ShortTermMemory:
             with open(self._stm_path, 'w') as file:
                 json.dump({}, file)
 
-    def memorize(self, keywords: list, filename: str) -> None:
+    def memorize_keywrods(self, keywords: list, filename: str) -> None:
         """
         Memorizes a conversation file under given keywords.
 
@@ -506,7 +506,7 @@ class DefaultModeNetwork:
 
         starred_keywords = [f"**{keyword}**" for keyword in keywords]
         keywords_selection_prompt = self._keyword_selection_prompt_template.replace("{keywords_list}", ', '.join(starred_keywords))
-        self.logger.prompt(f"Interesting keyword selection prompt:\n{keywords_selection_prompt}.")        
+        self.logger.prompt(f"Interesting keyword selection prompt:\n{keywords_selection_prompt}")        
         self.logger.debug(f"Asking LLM to select interesting keywords.")   
         keywords_selected_raw_output = self.pfc(keywords_selection_prompt)
         self.logger.monologue(f"LLM selected interesting keywords:\n{keywords_selected_raw_output}.\nMoving to keywords extraction.")   
@@ -542,7 +542,7 @@ class DefaultModeNetwork:
     
         perspective_explanation_prompt = self._perspective_explanation_prompt_template.replace("{interaction_history}", 
                                                                                              interaction_history)
-        self.logger.prompt(f"Prompt for conversation analysis:\n{perspective_explanation_prompt}.")
+        self.logger.prompt(f"Prompt for conversation analysis:\n{perspective_explanation_prompt}")
         self.logger.murmur(f"Thinking about recent conversations...")   
         adaptation_explanation = self.pfc(perspective_explanation_prompt)
         self.logger.monologue(f"Full explanation of the required adaptation: {adaptation_explanation}")   
@@ -681,9 +681,9 @@ class ReflectiveEvolutionMonitor:
             end_tag = prompt.index('**END**')
     
             dreamt_stimulus = prompt[stimulus_start:response_start].strip()
-            self.logger.prompt(f"Dreamt stimulus:\n{dreamt_stimulus}.")
+            self.logger.prompt(f"Dreamt stimulus:\n{dreamt_stimulus}")
             dreamt_response = prompt[response_start + len('**RESPONSE**'):end_tag].strip()
-            self.logger.prompt(f"Dreamt response:\n{dreamt_response}.")
+            self.logger.prompt(f"Dreamt response:\n{dreamt_response}")
 
             dream = self._dream_prompt_template.replace("{stimulus}", dreamt_stimulus) 
             dream = dream.replace("{response}", dreamt_response) 
@@ -693,7 +693,6 @@ class ReflectiveEvolutionMonitor:
             return None
     
 
-    
     async def _weave_dreams(self, num_dreams: int) -> str:
         """
         Generates a specified number of materials (dreams) and writes them into a single text file.
@@ -916,7 +915,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
         self.engaged.set()
         
         
-        self.logger.prompt(f"Conversation prompt template:\n{self._conversation_prompt}.")        
+        self.logger.prompt(f"Conversation prompt template:\n{self._conversation_prompt}")        
         self.logger.debug(f"Initiated interaction")        
         
         while True:
@@ -945,7 +944,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
             else:
                 await asyncio.sleep(1)
                 self._inactivity_count += 1
-                if self._inactivity_count >= self._inactivity_limit:
+                if (self._inactivity_count >= self._inactivity_limit) and self.engaged.is_set():
                     self.logger.debug(f"Inactivity count reached {self._inactivity_count} > {self._inactivity_limit}. Ending interaction.")        
                     await self._end_interaction()
                     break      
@@ -997,9 +996,9 @@ class LanguageProcessingModule(SensorySignalProcessing):
         self.logger.debug(f"This conversation will be saved to: {memory_path}")                
         StemUtility.memory_write(memory_path, self._interaction_history)
 
-        # Update the ShortTermMemory with the conversat|ion and its keywords
+        # Update the ShortTermMemory with the conversation and its keywords
         stm = ShortTermMemory()
-        stm.memorize(conversation_keywords, memory_path)
+        stm.memorize_keywrods(interaction_keywords, memory_path)
     
     async def get_user_input(self):
         """
