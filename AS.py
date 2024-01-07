@@ -1,4 +1,4 @@
-from langchain.llms import LlamaCpp
+from langchain_community.llms import LlamaCpp
 
 import asyncio
 
@@ -14,6 +14,7 @@ import subprocess
 
 import logging
 
+from typing import Optional, Union
 
 ## Logging utility
 
@@ -104,7 +105,7 @@ class StemUtility:
     """
     
     @staticmethod
-    def extract_keywords(raw_output):
+    def extract_keywords(raw_output) -> list:
         """
         Extracts keywords from the summary output.
 
@@ -122,11 +123,11 @@ class StemUtility:
         return keywords
 
     @staticmethod
-    def get_timestamp():
+    def get_timestamp() -> datetime:
         return datetime.now().strftime("%Y%m%d%H%M%S")
 
     @staticmethod
-    def archive(source_dir: str, source_file: str | None = None, archive_suffix='archive'):
+    def archive(source_dir: str, source_file: Optional[str] = None, archive_suffix='archive') -> bool:
         """
         Moves processed file to the respective archive folder.
 
@@ -251,7 +252,7 @@ class StemUtility:
             logger.error(f"Unexpected error wrtiting to file {file_path}: {e}")
     
     @staticmethod
-    def get_prompt(key):
+    def get_prompt(key) -> str:
         """
         Retrieves a prompt template by its key.
 
@@ -267,7 +268,7 @@ class StemUtility:
         return prompts.get(key, "")
 
     @staticmethod
-    def transplantation(base_model_path: str, new_model_path: str):
+    def transplantation(base_model_path: str, new_model_path: str) -> None:
         """Function moving new, finetuned model in place of an old one.
 
         Args:
@@ -313,7 +314,7 @@ class StemUtility:
             raise Exception(f"At least we tried... {e}") from e 
 
     @staticmethod
-    def clean_string(s):
+    def clean_string(s) -> str:
         # This regular expression finds the first occurrence of any letter in the string
         match = re.search("[a-zA-Z]", s)
         if match:
@@ -455,7 +456,7 @@ class ShortTermMemory:
         except Exception as e:
             self.logger.error(f"Unexpected error reading Short Term Memory file {self._stm_path}: {e}")
 
-    def recall_all_keywords(self) -> list | bool:
+    def recall_all_keywords(self) -> Union[bool, None]:
         """
         Retrieves a list of all keywords stored in memory.
 
@@ -468,7 +469,7 @@ class ShortTermMemory:
         if data and len(data) > 0:
             return list(data.keys())
         else:
-            return False
+            return None
 
 # Default Mode Network (DMN)
 class DefaultModeNetwork:
@@ -558,7 +559,7 @@ class DefaultModeNetwork:
         self.logger.monologue(f"Full explanation of the required adaptation: {adaptation_explanation}")   
         return adaptation_explanation
 
-    async def ponder(self):
+    async def ponder(self) -> bool:
         """
         The main asynchronous method of the class that orchestrates the process of 
         selecting keywords, fetching conversations, and analyzing them.
@@ -594,6 +595,7 @@ class DefaultModeNetwork:
         self.logger.debug(f"Interesting or not, forgetting conversations about {interesting_keywords}.")   
         self.stm.forget_keywords(interesting_keywords)
         self.engaged.clear()
+        return True
 
 
 # Reflective Evolution Monitor (REM)
@@ -671,7 +673,7 @@ class ReflectiveEvolutionMonitor:
         self._conclusions = StemUtility.memory_read(self._conclusion_file)
         return True
 
-    async def _spin_dream(self, dream_prompt: str) -> str | None:
+    async def _spin_dream(self, dream_prompt: str) -> Union[str, None]:
         """
         Prepares a single piece of data required for the fine-tuning process by interpreting the summary content.
 
@@ -799,7 +801,7 @@ class ReflectiveEvolutionMonitor:
         self.logger.info(f"Removing old {self._base_model_path}, moving {tmp_model_path} as new {self._base_model_path}.")
         StemUtility.transplantation(self._base_model_path, tmp_model_path)
     
-    def _dream_prunning(self):
+    def _dream_prunning(self) -> None:
         """
         Archives dream materials by moving them from the dream storage path to the archive path.
         """
@@ -892,7 +894,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
                  pfc,
                  engaged_event,
                  interaction_storage_path='conversations',
-                 inactivity_limit=360):
+                 inactivity_limit=600):
         """
         Initializes the HumanInteraction class.
 
@@ -977,7 +979,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
         self._inactivity_count = 0
         self.engaged.clear()
     
-    def _summarize_interaction(self):
+    def _summarize_interaction(self) -> list:
         """
         Summarizes the conversation and returns the list of relevant keywords.
 
@@ -997,7 +999,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
         
         return keywords_generated_pure
 
-    def _save_interaction_history(self):
+    def _save_interaction_history(self) -> None:
         """
         Saves the interaction history to a file.
 
@@ -1060,18 +1062,23 @@ class CognitiveFeedbackRouter:
         self.logger.debug("Cognitive Feedback Router instantiated.")
         
 
-    def _wakeup(self):
+    def _wakeup(self) -> None:
         """
         Wakes up the system and initializes the LLM.
         """
         self.logger.debug("Starting _wakeup() procedure.")    
         self.logger.murmur("Just a second, I'm waking up...")
-        self.logger.debug(f"Initializing LLM model from {self._model_path}.")            
-        self.pfc = LlamaCpp(model_path=self._model_path, 
-                            n_ctx=4096,
-                            max_tokens=4000,
-                            n_batch=8)
-        self.logger.debug(f"LLM model initialized.")                 
+        self.logger.debug(f"Initializing LLM model from {self._model_path}.")
+        try:
+            self.logger.debug(f"Loading LLM.")            
+            self.pfc = LlamaCpp(model_path=self._model_path, 
+                                n_ctx=4096,
+                                max_tokens=4000,
+                                n_batch=16)
+        except Exception as e:
+            logger.error(f"Error initializing LLM model: {e}")
+            raise
+        self.logger.debug(f"LLM initialized.")                 
         self.overwhelmed.clear()
         self._conversation_handler = LanguageProcessingModule(self.pfc, self.engaged)            
         asyncio.create_task(self._conversation_handler.get_user_input())
@@ -1107,6 +1114,5 @@ class CognitiveFeedbackRouter:
             else:
                 await asyncio.sleep(1)                
 
-
-AS = CognitiveFeedbackRouter(model_path='llama-2-13b-chat.Q6_K.gguf', dmn_countdown=10)
+AS = CognitiveFeedbackRouter(model_path='llama-2-13b-chat.Q6_K.gguf', dmn_countdown=360)
 asyncio.run(AS.attention_switch())
