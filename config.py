@@ -16,6 +16,9 @@ dreams_to_generate_num = 1
 #Number of epochs in a self-finetuning session
 epochs = 1
 
+#Path to the folder containing llama.cpp finetune-related binaries
+llama_cpp_path = 'finetune_bins'
+
 #Weight of lora paraters at integration into base model 
 lora_weight = 0.7
 

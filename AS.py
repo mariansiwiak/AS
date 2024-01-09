@@ -744,12 +744,12 @@ class ReflectiveEvolutionMonitor:
             fine_tuning_data (dict): Data prepared for fine-tuning.
         """
         
-        llamacpp_folder = "llama_cpp"
+        finetune_dir = config.llama_cpp_path
         finetune_tool = "finetune"
         lora_tool = "export-lora"
 
-        finetune_tool_path = os.path.join(llamacpp_folder, finetune_tool)
-        lora_tool_path = os.path.join(llamacpp_folder, lora_tool)
+        finetune_tool_path = os.path.join(finetune_dir, finetune_tool)
+        lora_tool_path = os.path.join(finetune_dir, lora_tool)
 
         # Check if finetune_tool_path is a valid file
         if not os.path.isfile(finetune_tool_path):
@@ -1076,7 +1076,7 @@ class CognitiveFeedbackRouter:
                                 max_tokens=4000,
                                 n_batch=16)
         except Exception as e:
-            logger.error(f"Error initializing LLM model: {e}")
+            self.logger.error(f"Error initializing LLM model: {e}")
             raise
         self.logger.debug(f"LLM initialized.")                 
         self.overwhelmed.clear()
