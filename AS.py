@@ -278,9 +278,9 @@ class StemUtility:
             new_model_path (str): Path to finetuned model
         
         """
-        
+        logger = logging.getLogger('StemUtility')
         try:
-            self.logger.debug(f"Checking if {new_model_path} exists.")
+            logger.debug(f"Checking if {new_model_path} exists.")
             if not os.path.exists(new_model_path):
                 if os.path.exists(base_model_path):
                     # new_model_path doesn't exist but base model does
@@ -289,29 +289,29 @@ class StemUtility:
                     raise Exception(f"Missing both model files: {base_model_path} and {new_model_path}")
 
             backup_path = base_model_path + "_bck"
-            self.logger.debug(f"Trying to backup old model file to {backup_path}.")            
+            logger.debug(f"Trying to backup old model file to {backup_path}.")            
             if os.path.exists(base_model_path):
                 try:
                     shutil.copy(base_model_path, backup_path)
                 except Exception as e:
                     raise Exception(f"Warning: can't make a backup: {e}") from e
             
-            self.logger.debug(f"Trying to remove original model file: {base_model_path}.")                    
+            logger.debug(f"Trying to remove original model file: {base_model_path}.")                    
             if os.path.exists(base_model_path):
                 os.remove(base_model_path)
                 if os.path.exists(base_model_path):
                     raise Exception("Failed to remove the existing model file.")
         
-            self.logger.debug(f"Trying to move new model file {new_model_path} to take place of {base_model_path}.")                    
+            logger.debug(f"Trying to move new model file {new_model_path} to take place of {base_model_path}.")                    
             shutil.move(new_model_path, base_model_path)
             if not os.path.exists(base_model_path):
                 raise Exception(f"Failed to swap LLM model files.")
         
-            self.logger.info("Base LLM File swap successful.")
+            logger.info("Base LLM File swap successful.")
 
         except Exception as e:
             # Update the error logging to handle general exceptions, not just subprocess-related ones
-            self.logger.error(f"Self brain transplantation failed: {str(e)}")
+            logger.error(f"Self brain transplantation failed: {str(e)}")
             # Reraise the exception with a custom message
             raise Exception(f"At least we tried... {e}") from e 
 
