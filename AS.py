@@ -16,6 +16,8 @@ import logging
 
 from typing import Optional, Union
 
+import config
+
 ## Logging utility
 
 def setup_custom_log_levels():
@@ -64,7 +66,7 @@ def setup_custom_log_levels():
             self._log(MONOLOGUE_LEVEL_NUM, message, args, **kwargs)
     logging.Logger.monologue = log_monologue
 
-def setup_logging(file_log_level: int = 10, console_log_level: int = 10):
+def setup_logging(file_log_level: int, console_log_level: int) -> None:
     setup_custom_log_levels()
 
     # Create a file handler for logging
@@ -94,7 +96,7 @@ def setup_logging(file_log_level: int = 10, console_log_level: int = 10):
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
 
-setup_logging()
+setup_logging(file_log_level=config.file_log_level, console_log_level=config.console_log_level)
 
 # Stem
 class StemUtility:
@@ -607,14 +609,9 @@ class ReflectiveEvolutionMonitor:
 
     def __init__(self,
                  pfc,
-                 base_model_path: str = 'llama-2-13b-chat.Q6_K.gguf',
                  conclusions_storage_path: str = 'conclusions',
                  dream_storage_path: str = 'context',
-                 dreams_number: int = 1,
-                 available_threads: int = 8, 
-                 epochs: int = 1,
-                 latest_lora_path: str = r".\ggml-lora-LATEST-f32.gguf",
-                 lora_weight: float = 0.7):
+                 latest_lora_path: str = r".\ggml-lora-LATEST-f32.gguf"):
         """
         Initializes the ReflectiveEvolutionMonitor class. 
 
@@ -626,11 +623,11 @@ class ReflectiveEvolutionMonitor:
         """
 
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.debug(f"Instantiating {self.__class__.__name__} with base_model_path = {base_model_path}, conclusions_storage_path = {conclusions_storage_path}, dream_storage_path: {dream_storage_path}.")  
+        self.logger.debug(f"Instantiating {self.__class__.__name__} with conclusions_storage_path = {conclusions_storage_path} and dream_storage_path: {dream_storage_path}.")  
     
         self.pfc = pfc
         
-        self._base_model_path = base_model_path
+        self._base_model_path = config.model_path
 
         self._conclusions_storage_path = conclusions_storage_path
         StemUtility.prepare_directory(self._conclusions_storage_path)
@@ -644,12 +641,13 @@ class ReflectiveEvolutionMonitor:
 
         self._conclusions = ''
         
-        self._dreams_number = dreams_number
-        self._available_threads = str(available_threads)
-        self._epochs = str(epochs)
-        self._latest_lora_path = latest_lora_path
-        self.lora_weight = str(lora_weight)
+        self._dreams_to_generate_num = config.dreams_to_generate_num
+        self._available_threads = str(config.available_threads)
+        self._epochs = str(config.epochs)
+        self.lora_weight = str(config.lora_weight)
 
+        self._latest_lora_path = latest_lora_path    
+    
     def _gather_conclusion(self) -> bool:
         """
         Reads a summary document as a text file.
@@ -744,7 +742,7 @@ class ReflectiveEvolutionMonitor:
             fine_tuning_data (dict): Data prepared for fine-tuning.
         """
         
-        finetune_dir = config.llama_cpp_path
+        finetune_dir = config.finetune_dir
         finetune_tool = "finetune"
         lora_tool = "export-lora"
 
@@ -811,7 +809,7 @@ class ReflectiveEvolutionMonitor:
             StemUtility.archive(self._dream_storage_path, file_name)
         StemUtility.archive(self._conclusion_file)
     
-    async def dream(self):
+    async def dream(self) -> Optional[bool]:
         """
         Orchestrates the whole process of selecting a summary, reading it, preparing fine-tuning data, and performing fine-tuning.
         """  
@@ -823,11 +821,11 @@ class ReflectiveEvolutionMonitor:
         if not conclusions_found:
             return False
         self.logger.info(f"Selected conclusion to permeate.")
-        dreams_path = await self._weave_dreams(self._dreams_number)  # Generate 50 materials, modify as needed
+        dreams_path = await self._weave_dreams(self._dreams_to_generate_num)  # Generate 50 materials, modify as needed
         self.logger.info(f"Self-finetuning materials generated. Staring self-finetuning.")        
-        #await self._deepsleep(dreams_path)
-        #self._dream_prunning()
-        #self.logger.info(f"Self-finetuning session ended.")        
+        await self._deepsleep(dreams_path)
+        self._dream_prunning()
+        self.logger.info(f"Self-finetuning session ended.")        
 
 
 # Sensory Signal Processing (SSP)
@@ -838,7 +836,7 @@ class SensorySignalProcessing(ABC):
     This class serves as a blueprint for modules that manage interaction between a user and a model.
     """
 
-    def __init__(self, pfc, engaged_event, interaction_storage_path, inactivity_limit=360):
+    def __init__(self, pfc, engaged_event, interaction_storage_path):
         self.logger = logging.getLogger(self.__class__.__name__)
         
         self.pfc = pfc
@@ -849,7 +847,7 @@ class SensorySignalProcessing(ABC):
         
         self._interaction_storage_path = interaction_storage_path
         
-        self._inactivity_limit = inactivity_limit
+        self._interaction_timeout = config.interaction_timeout
         self._inactivity_count = 0
 
 
@@ -893,8 +891,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
     def __init__(self,
                  pfc,
                  engaged_event,
-                 interaction_storage_path='conversations',
-                 inactivity_limit=600):
+                 interaction_storage_path='conversations'):
         """
         Initializes the HumanInteraction class.
 
@@ -907,7 +904,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
             interaction_storage_path: Path to a folder where all the conversations are being logged to 
         """
 
-        super().__init__(pfc, engaged_event, interaction_storage_path, inactivity_limit)
+        super().__init__(pfc, engaged_event, interaction_storage_path)
 
         self.logger.debug(f"Instantiating {self.__class__.__name__} with interaction_storage_path: {interaction_storage_path}")
 
@@ -919,12 +916,12 @@ class LanguageProcessingModule(SensorySignalProcessing):
 
         self._keywords_generation_prompt_template = StemUtility.get_prompt("keyword_generation")
     
-    async def start_interaction(self):
+    async def start_interaction(self) -> None:
         """
         Starts the conversation loop.
 
         This asynchronous method continually checks for user input, processes it,
-        and generates responses using the LLM. The loop ends when the user inputs a keyword ending 
+        and generates responses using the LLM. The loop ends when the user inputs interaction break keyword
         or when the inactivity limit is reached.
         """
         self.engaged.set()
@@ -938,7 +935,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
                 self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
                 self.logger.debug(f"Received input: {self.stimulus}")        
 
-                if self.stimulus.lower() == config.end_conversation_keyword:
+                if self.stimulus.lower() == config.interaction_break:
                     await self._end_interaction()
                     break
               
@@ -959,12 +956,12 @@ class LanguageProcessingModule(SensorySignalProcessing):
             else:
                 await asyncio.sleep(1)
                 self._inactivity_count += 1
-                if (self._inactivity_count >= self._inactivity_limit) and self.engaged.is_set():
-                    self.logger.debug(f"Inactivity count reached {self._inactivity_count} > {self._inactivity_limit}. Ending interaction.")        
+                if (self._inactivity_count >= self._interaction_timeout) and self.engaged.is_set():
+                    self.logger.debug(f"Inactivity count reached {self._inactivity_count} > {self._interaction_timeout}. Ending interaction.")        
                     await self._end_interaction()
                     break      
     
-    async def _end_interaction(self):
+    async def _end_interaction(self) -> None:
         """
         Ends the conversation.
 
@@ -1015,7 +1012,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
         stm = ShortTermMemory()
         stm.memorize_keywrods(interaction_keywords, memory_path)
     
-    async def get_user_input(self):
+    async def get_user_input(self) -> None:
         """
         Continuously captures user input in an asynchronous loop.
 
@@ -1036,7 +1033,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
 
 class CognitiveFeedbackRouter:
     
-    def __init__(self, model_path: str = "llama-2-13b-chat.Q6_K.gguf", dmn_countdown: int = 60):
+    def __init__(self):
         """
         A class that manages the routing of cognitive feedback based on user input and system states.
     
@@ -1050,17 +1047,13 @@ class CognitiveFeedbackRouter:
         self.engaged = asyncio.Event()
         self.overwhelmed = asyncio.Event()
         
-        self.lock = asyncio.Lock()
-        
+        self._model_path = config.model_path
         self.pfc = None
         
-        self._model_path = model_path
         self._conversation_handler = None
+        self._dmn_countdown = config.dmn_countdown
         
-        self._dmn_countdown = dmn_countdown # time between last interaction and entering Default Mode
-        
-        self.logger.debug("Cognitive Feedback Router instantiated.")
-        
+        self.logger.debug("Cognitive Feedback Router instantiated.")        
 
     def _wakeup(self) -> None:
         """
@@ -1076,7 +1069,7 @@ class CognitiveFeedbackRouter:
                                 max_tokens=4000,
                                 n_batch=16)
         except Exception as e:
-            self.logger.error(f"Error initializing LLM model: {e}")
+            logger.error(f"Error initializing LLM model: {e}")
             raise
         self.logger.debug(f"LLM initialized.")                 
         self.overwhelmed.clear()
@@ -1084,7 +1077,7 @@ class CognitiveFeedbackRouter:
         asyncio.create_task(self._conversation_handler.get_user_input())
         self.logger.flag(f"overwhelmed = {self.overwhelmed.is_set()}")
             
-    async def attention_switch(self):
+    async def attention_switch(self) -> None:
         """
         Manages the mode of operation based on user input and system states.
 
@@ -1102,11 +1095,11 @@ class CognitiveFeedbackRouter:
             elif not self.engaged.is_set():
                 self.logger.debug(f"No environment interaction and no new conclusions detected. Preparing to switch to Default Mode.")                     
                 for _ in range(self._dmn_countdown):
-                    await asyncio.sleep(1)  # Sleep for 1 second
+                    await asyncio.sleep(1)
                     if self.engaged.is_set():
-                        self.logger.debug(f"Cancelling Default Mode countdown due to environment interaction detection.")                                                 
-                        break  # Exit the loop if the new stimuli is detected
-                else:  # This else clause executes if the loop completes normally (no break)
+                        self.logger.debug(f"Cancelling Default Mode countdown due to environment interaction detection.")
+                        break
+                else:
                     self.logger.debug(f"Entering Default Mode.")                                                                         
                     dmn = DefaultModeNetwork(self.pfc, self.overwhelmed, self.engaged)
                     await dmn.ponder()
@@ -1114,5 +1107,5 @@ class CognitiveFeedbackRouter:
             else:
                 await asyncio.sleep(1)                
 
-AS = CognitiveFeedbackRouter(model_path='llama-2-13b-chat.Q6_K.gguf', dmn_countdown=360)
+AS = CognitiveFeedbackRouter()
 asyncio.run(AS.attention_switch())
