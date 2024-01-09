@@ -1030,7 +1030,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
         while True:
             await self.ready_for_input.wait()
             self.stimulus = await asyncio.get_event_loop().run_in_executor(None, input, "Enter something: ")
-            self.logger.debug(f"User input received: {self.stimulus}.")
+            self.logger.debug(f"User input received: {self.stimulus}")
             asyncio.create_task(self.start_interaction())
             self.ready_for_input.clear()
             self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
