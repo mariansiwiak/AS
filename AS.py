@@ -618,7 +618,7 @@ class ReflectiveEvolutionMonitor:
                  pfc,
                  conclusions_storage_path: str = 'conclusions',
                  dream_storage_path: str = 'context',
-                 latest_lora_path: str = r".\ggml-lora-LATEST-f32.gguf"):
+                 latest_lora_path: str = r"ggml-lora-LATEST-f32.gguf"):
         """
         Initializes the ReflectiveEvolutionMonitor class. 
 
