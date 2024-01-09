@@ -924,7 +924,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
         Starts the conversation loop.
 
         This asynchronous method continually checks for user input, processes it,
-        and generates responses using the LLM. The loop ends when the user inputs "end chat"
+        and generates responses using the LLM. The loop ends when the user inputs a keyword ending 
         or when the inactivity limit is reached.
         """
         self.engaged.set()
@@ -938,7 +938,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
                 self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
                 self.logger.debug(f"Received input: {self.stimulus}")        
 
-                if self.stimulus.lower() == "end chat":
+                if self.stimulus.lower() == config.end_conversation_keyword:
                     await self._end_interaction()
                     break
               
