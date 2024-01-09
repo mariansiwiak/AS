@@ -17,7 +17,7 @@ available_threads = 8
 dreams_to_generate_num = 1
 
 #Location of folder with finetune-realted binaries
-llamacpp_folder = "finetune_bins"
+finetune_dir = "finetune_bins"
 
 #Number of epochs in a self-finetuning session
 epochs = 1
