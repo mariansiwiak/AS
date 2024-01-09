@@ -1100,7 +1100,7 @@ class CognitiveFeedbackRouter:
                 await rem.dream()
                 self._wakeup()
             elif not self.engaged.is_set():
-                self.logger.debug(f"No environment interaction and no new conclusions detected. Preparing to switch to Default Mode.")                     
+                self.logger.debug(f"Preparing to switch to Default Mode.")                     
                 for _ in range(self._dmn_countdown):
                     await asyncio.sleep(1)
                     if self.engaged.is_set():
