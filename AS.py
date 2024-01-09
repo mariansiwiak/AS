@@ -567,6 +567,13 @@ class DefaultModeNetwork:
         selecting keywords, fetching conversations, and analyzing them.
         """
 
+        self.logger.debug(f"Checking if there are any unprocessed conclusions.")           
+        conclusion_files = [f for f in os.listdir(self._conclusions_storage_path) if f.startswith("conclusions_")]
+        if conclusion_files:
+            self.logger.debug(f"Found conclusion files: {conclusion_files}. Setting overwhelmed status.")
+            self.overwhelmed.set()
+            return True
+        
         self.logger.debug(f"Checking if there are any topics to be analyzed deeper.")           
         all_keywords = self.stm.recall_all_keywords()
         if not all_keywords:
