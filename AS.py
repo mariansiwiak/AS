@@ -482,8 +482,8 @@ class DefaultModeNetwork:
 
     def __init__(self,
                  pfc,
-                 overwhelmed_event,
-                 engaged_event
+                 overwhelmed_event: asyncio.Event = asyncio.Event(),
+                 engaged_event: asyncio.Event = asyncio.Event()
                 ):
         """
         Initializes the DefaultModeNetwork class by setting up the short-term memory (STM) component.
@@ -544,7 +544,7 @@ class DefaultModeNetwork:
         concatenated_memories = self.stm.concatenate_memories(filenames)
         return filenames, concatenated_memories 
 
-    async def _analyze_interaction(self, interaction_history) -> str:
+    def _analyze_interaction(self, interaction_history) -> str:
         """
         Analyzes the concatenated interaction history.
 
@@ -587,11 +587,11 @@ class DefaultModeNetwork:
 
         if concatenated_memories:
             self.logger.debug(f"Moving to analyze the conversaton histories.")           
-            adaptation_summary = await self._analyze_interaction(concatenated_memories)
+            adaptation_summary = self._analyze_interaction(concatenated_memories)
             conclusion_file = os.path.join(self._conclusions_dir, f"conclusion_{StemUtility.get_timestamp()}.txt")
             self.logger.debug(f"Conclusions saved to {conclusion_file}.")
             StemUtility.memory_write(conclusion_file, adaptation_summary)
-            if "**status quo**" not in adaptation_summary.lower():
+            if "**uninspiring**" not in adaptation_summary.lower():
                 self.logger.murmur(f"Discussion on {interesting_keywords} indeed brought a new perspective...")
                 self.overwhelmed.set()
                 self.logger.flag(f"overwhelmed: {self.overwhelmed.is_set()}")
@@ -895,10 +895,10 @@ class LanguageProcessingModule(SensorySignalProcessing):
     
     def __init__(self,
                  pfc,
-                 engaged_event,
-                 interaction_storage_path='conversations'):
+                 engaged_event: asyncio.Event = asyncio.Event(),
+                 interaction_storage_path: str ='conversations'):
         """
-        Initializes the HumanInteraction class.
+        Initializes the LanguageProcessingModule class.
 
         Sets up the conversation environment, including the conversation prompt, keywords prompt,
         and conversation chain with the LLM.
@@ -1052,7 +1052,6 @@ class CognitiveFeedbackRouter:
         self.engaged = asyncio.Event()
         self.overwhelmed = asyncio.Event()
         
-        self._model_path = config.model_path
         self.pfc = None
         
         self._dmn_countdown = config.dmn_countdown
@@ -1070,14 +1069,15 @@ class CognitiveFeedbackRouter:
         """
         self.logger.debug("Starting _wakeup() procedure.")    
         self.logger.murmur("Just a second, I'm waking up...")
-        self.logger.debug(f"Initializing LLM model from {self._model_path}.")
+        self.logger.debug(f"Initializing LLM model from {config.model_path}.")
         try:
             self.logger.debug(f"Loading LLM.")            
-            self.pfc = LlamaCpp(model_path=self._model_path,
+            self.pfc = LlamaCpp(model_path=config.model_path,
                                 temperature=config.model_temp,
                                 n_ctx=4096,
                                 max_tokens=4000,
-                                n_batch=config.available_threads)
+                                n_parts=config.available_threads,
+                                n_batch=4*config.available_threads)
         except Exception as e:
             self.logger.error(f"Error initializing LLM model: {e}")
             raise
@@ -1120,3 +1120,16 @@ class CognitiveFeedbackRouter:
 
 AS = CognitiveFeedbackRouter()
 asyncio.run(AS.attention_switch())
+
+#pfc = LlamaCpp(model_path=config.model_path, temperature=config.model_temp, n_ctx=4096, max_tokens=4000, n_batch=config.available_threads)
+#file_path = 'conversations/conversation_20000101010101.txt'
+#with open(file_path, 'r') as file:
+#    file_contents = file.read()
+
+
+# LPM = LanguageProcessingModule(pfc)
+# LPM._interaction_history = file_contents
+# LPM._summarize_interaction()
+
+#DMN = DefaultModeNetwork(pfc)
+#DMN._analyze_interaction(file_contents)
