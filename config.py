@@ -19,13 +19,13 @@ interaction_break = "end_chat"
 available_threads = cpu_count()
 
 # Number of self-finetuning session training materials to be generated 
-dreams_to_generate_num = 100
+dreams_to_generate_num = 500
 
 # Location of folder with finetune-realted binaries
 finetune_dir = "finetune_bins"
 
 # Number of epochs in a self-finetuning session
-epochs = 2
+epochs = 5
 
 # File with lora parameters to integrate into base model
 lora_to_integrate = r"ggml-lora-LATEST-f32.gguf"
