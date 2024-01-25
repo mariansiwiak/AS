@@ -18,9 +18,24 @@ from typing import Optional, Union
 
 import config
 
-## Logging utility
-
+# Logging utility
 def setup_custom_log_levels():
+    """
+    Sets up custom logging levels for a more granular logging control.
+
+    This function defines four custom logging levels: MURMUR, FLAG, PROMPTING, and MONOLOGUE, 
+    with respective level numbers. It also attaches corresponding methods (log_murmur, 
+    log_flag, log_prompting, log_monologue) to the logging.Logger class for convenient logging 
+    at these levels. These custom levels allow for distinct logging behaviors for different 
+    types of messages, such as PFC actions, status flags, prompt messages, and internal monologues.
+
+    Each custom level has a specific purpose:
+    - MURMUR (level 39): For logging quieter PFC actions.
+    - FLAG (level 13): For logging status flags.
+    - PROMPTING (level 12): For logging complete prompt messages sent to PFC.
+    - MONOLOGUE (level 11): For logging PFC internal monologue.
+    """
+
     # Define custom logging levels
     MURMUR_LEVEL_NUM = 39
     logging.addLevelName(MURMUR_LEVEL_NUM, "MURMUR")
@@ -67,6 +82,23 @@ def setup_custom_log_levels():
     logging.Logger.monologue = log_monologue
 
 def setup_logging(file_log_level: int, console_log_level: int) -> None:
+    """
+    Initializes and configures the logging system for both file and console output.
+
+    This function first sets up custom log levels and then configures logging handlers 
+    for output to a file and the console. It creates a new log file for each session 
+    with a timestamp in its name, ensuring that log data is stored in a unique file 
+    for each run. The logging levels for both file and console can be independently set.
+
+    Parameters:
+    file_log_level (int): The logging level for the file handler.
+    console_log_level (int): The logging level for the console handler.
+
+    The function configures a formatter for the log messages and applies it to both 
+    file and console handlers. It also ensures that any existing log handlers are 
+    removed before setting up the new ones.
+    """
+    
     setup_custom_log_levels()
 
     # Create a file handler for logging
@@ -126,6 +158,15 @@ class StemUtility:
 
     @staticmethod
     def get_timestamp() -> datetime:
+        """
+        Generates a timestamp string representing the current date and time.
+
+        This method returns a timestamp using the current date and time formatted as 'YYYYMMDDHHMMSS'.
+        It provides a convenient way to generate timestamps that can be used for logging, file naming, or other time-based referencing.
+
+        Returns:
+        str: A string representing the current timestamp in the format 'YYYYMMDDHHMMSS'.
+        """
         return datetime.now().strftime("%Y%m%d%H%M%S")
 
     @staticmethod
@@ -278,6 +319,7 @@ class StemUtility:
             new_model_path (str): Path to finetuned model
         
         """
+        
         logger = logging.getLogger('StemUtility')
         try:
             logger.debug(f"Checking if {new_model_path} exists.")
@@ -317,6 +359,20 @@ class StemUtility:
 
     @staticmethod
     def clean_string(s) -> str:
+        """
+        Cleans the input string by removing all leading characters up to the first alphabet letter.
+
+        This method searches for the first occurrence of any letter (a-z, A-Z) in the input string. 
+        If a letter is found, it returns the substring starting from that letter. 
+        If no letter is found, it returns an empty string.
+
+        Parameters:
+        s (str): The input string to be cleaned.
+
+        Returns:
+        str: The cleaned string with leading non-letter characters removed, or an empty string if no letters are found.
+        """    
+
         # This regular expression finds the first occurrence of any letter in the string
         match = re.search("[a-zA-Z]", s)
         if match:
@@ -325,6 +381,50 @@ class StemUtility:
         else:
             # If no letter is found, return an empty string or handle as needed
             return ""
+
+    @staticmethod
+    def finetune_cleanup():
+        """
+        Performs cleanup operations for finetuning processes. It involves the following steps:
+        - Creates a timestamped subdirectory in the logs directory.
+        - Moves specific final LoRA files (checkpoint-LATEST.gguf, ggml-lora-LATEST-f32.gguf) to this subdirectory.
+        - Removes any remaining 'checkpoint-*' and 'ggml-lora-*' files from the logs directory.
+
+        This method uses the 'StemUtility.get_timestamp()' method to generate a unique timestamp for the subdirectory.
+        It ensures that only the specified final files are archived and the rest are cleaned up, maintaining a neat logs directory.
+        
+        Exceptions during file removal are caught and logged for debugging purposes.
+        """        
+        logger = logging.getLogger('StemUtility')
+        
+        logs_dir = config.log_dir
+        timestamp = StemUtility.get_timestamp()  # using your timestamp function
+        finetuning_dir = os.path.join(logs_dir, f"finetuning_{timestamp}")
+        StemUtility.prepare_directory(finetuning_dir)
+        
+        #Final LoRA files to archive
+        files_to_archive = [
+            "checkpoint-LATEST.gguf",
+            "ggml-lora-LATEST-f32.gguf"
+        ]
+
+        for file_name in files_to_archive:
+            src_path = os.path.join(logs_dir, file_name)
+            if os.path.exists(src_path):
+                shutil.move(src_path, finetuning_dir)
+            else:
+                logger.debug(f"File not found: {file_name}")
+
+        # Clean up the remaining files
+        try:
+            for tmp_file in glob(os.path.join(logs_dir, 'checkpoint-*')):
+                if tmp_file not in files_to_archive:
+                    os.remove(tmp_file)
+            for tmp_file in glob(os.path.join(logs_dir, 'ggml-lora-*')):
+                if tmp_file not in files_to_archive:
+                    os.remove(tmp_file)
+        except Exception as e:
+            logger.debug(f"Error removing tmp files: {e}")
 
 # Short-Term Memory (STM)
 class ShortTermMemory:
@@ -507,7 +607,7 @@ class DefaultModeNetwork:
     
     async def _interesting_keywords_selection(self, keywords) -> list:
         """
-        Asynchronously selects a subset of keywords deemed interesting or relevant by the LLM.
+        Delects a subset of keywords deemed interesting or relevant by the LLM.
 
         Args:
             keywords (list): A list of keywords to choose from.
@@ -544,7 +644,7 @@ class DefaultModeNetwork:
         concatenated_memories = self.stm.concatenate_memories(filenames)
         return filenames, concatenated_memories 
 
-    def _analyze_interaction(self, interaction_history) -> str:
+    async def _analyze_interaction(self, interaction_history) -> str:
         """
         Analyzes the concatenated interaction history.
 
@@ -587,7 +687,7 @@ class DefaultModeNetwork:
 
         if concatenated_memories:
             self.logger.debug(f"Moving to analyze the conversaton histories.")           
-            adaptation_summary = self._analyze_interaction(concatenated_memories)
+            adaptation_summary = await self._analyze_interaction(concatenated_memories)
             conclusion_file = os.path.join(self._conclusions_dir, f"conclusion_{StemUtility.get_timestamp()}.txt")
             self.logger.debug(f"Conclusions saved to {conclusion_file}.")
             StemUtility.memory_write(conclusion_file, adaptation_summary)
@@ -672,7 +772,7 @@ class ReflectiveEvolutionMonitor:
         self._conclusions = StemUtility.memory_read(self._conclusion_file)
         return True
 
-    async def _spin_dream(self, dream_prompt: str) -> Union[str, None]:
+    def _spin_dream(self, dream_prompt: str) -> Union[str, None]:
         """
         Prepares a single piece of data required for the fine-tuning process by interpreting the summary content.
 
@@ -707,7 +807,7 @@ class ReflectiveEvolutionMonitor:
             return None
     
 
-    async def _weave_dreams(self, num_dreams: int) -> str:
+    async def _weave_dreams(self, num_dreams: int = 1) -> str:
         """
         Generates a specified number of materials (dreams) and writes them into a single text file.
         Each 'dream' is appended to the file as it is generated.
@@ -728,9 +828,9 @@ class ReflectiveEvolutionMonitor:
         generated_dreams = 0
         while generated_dreams < num_dreams:
             self.logger.info(f"Generating dream # {generated_dreams}.")
-            dream = await self._spin_dream(dream_spinning_prompt)
+            dream = self._spin_dream(dream_spinning_prompt) 
             if dream:
-                with open(dreams_path, 'a') as file:  # Open and append each dream, then close the file
+                with open(dreams_path, 'a') as file: 
                     file.write(dream + '\n')
                 generated_dreams += 1
         return dreams_path
@@ -778,8 +878,8 @@ class ReflectiveEvolutionMonitor:
             self.logger.error(f"Self-finetuning session failed the return code {e.returncode}.")   
             return False
         
-        # Export LoRA model command - output to llm_tmp.guff
-        tmp_model_path = r"llm_tmp.guff"
+        # Export LoRA model command - output to llm_tmp.gguf
+        tmp_model_path = r"llm_tmp.gguf"
         export_command = [
             lora_tool_path,
             "--model-base", self._base_model_path,
@@ -799,15 +899,8 @@ class ReflectiveEvolutionMonitor:
         self.logger.murmur(f"Self-finetuning: Swapping brain to a new one")
         self.logger.info(f"Removing old {self._base_model_path}, moving {tmp_model_path} as new {self._base_model_path}.")
         StemUtility.transplantation(self._base_model_path, tmp_model_path)
-        # tmp files cleanup
-        try:
-            for tmp_file in glob('checkpoint-*'):
-                os.remove(tmp_file)
-            for tmp_file in glob('ggml-lora-*'):
-                os.remove(tmp_file)
-        except:
-            self.logger.debug(f"Error removing tmp Lora files: {e}")
-    
+        StemUtility.finetune_cleanup()
+            
     def _dream_prunning(self) -> None:
         """
         Archives dream materials by moving them from the dream storage path to the archive path.
@@ -945,7 +1038,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
                     break
               
                 self._conversation_prompt += f"{self.stimulus} [/INST] "
-                self._interaction_history += f"Human: {self.stimulus}\n"
+                self._interaction_history += f"User: {self.stimulus}\n"
                 
                 self.logger.monologue(f"LLM will receive: {self._conversation_prompt}")
                 self.logger.debug(f"Awaiting LLM response")
@@ -953,7 +1046,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
                 print("AI:", response)
 
                 self._conversation_prompt += f"{response}</s><s> [INST] "
-                self._interaction_history += f"AI: {response}\n"
+                self._interaction_history += f"You: {response}\n"
                 
                 self.ready_for_input.set()  # Signal that the handler is ready for new input
                 self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
@@ -1059,7 +1152,7 @@ class CognitiveFeedbackRouter:
         self.logger.debug("Cognitive Feedback Router instantiated.")        
 
     def _sharpen_senses(self) -> None:
-        "Starts sesory functions"
+        "Starts sensory functions"
         _conversation_handler = LanguageProcessingModule(self.pfc, self.engaged)            
         asyncio.create_task(_conversation_handler.get_user_input())
 
@@ -1123,13 +1216,21 @@ asyncio.run(AS.attention_switch())
 
 #pfc = LlamaCpp(model_path=config.model_path, temperature=config.model_temp, n_ctx=4096, max_tokens=4000, n_batch=config.available_threads)
 #file_path = 'conversations/conversation_20000101010101.txt'
+#file_path = 'conclusions/conclusion_20000101010101.txt'
 #with open(file_path, 'r') as file:
 #    file_contents = file.read()
 
 
-# LPM = LanguageProcessingModule(pfc)
-# LPM._interaction_history = file_contents
-# LPM._summarize_interaction()
+#LPM = LanguageProcessingModule(pfc)
+#LPM._interaction_history = file_contents
+#LPM._summarize_interaction()
 
 #DMN = DefaultModeNetwork(pfc)
-#DMN._analyze_interaction(file_contents)
+#asyncio.run(DMN._analyze_interaction(file_contents))
+
+
+#REM = ReflectiveEvolutionMonitor(pfc=pfc)
+#REM._conclusions = file_contents
+#asyncio.run(REM._weave_dreams(4))
+
+
