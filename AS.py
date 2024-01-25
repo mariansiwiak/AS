@@ -443,7 +443,7 @@ class ShortTermMemory:
         This method checks if the JSON file exists at the specified location and creates it if not.
         """
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.debug(f"Instantiating {self.__class__.__name__} with Short Term Memory path: {stm_path}")
+        self.logger.info(f"Instantiating {self.__class__.__name__} with Short Term Memory path: {stm_path}")
         
         self._stm_path = stm_path
         if not os.path.exists(self._stm_path):
@@ -590,8 +590,8 @@ class DefaultModeNetwork:
         Initializes the DefaultModeNetwork class by setting up the short-term memory (STM) component.
         """
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.debug(f"Instantiating {self.__class__.__name__}.")
-        self.logger.flag(f"overhelmed: {overwhelmed_event.is_set()}") 
+        self.logger.info(f"Instantiating {self.__class__.__name__}")
+        self.logger.flag(f"Overhelmed state: {overwhelmed_event.is_set()}") 
         
         self.stm = ShortTermMemory()
         self.pfc = pfc
@@ -624,7 +624,7 @@ class DefaultModeNetwork:
         keywords_selected_raw_output = self.pfc.invoke(keywords_selection_prompt)
         self.logger.monologue(f"LLM selected interesting keywords:\n{keywords_selected_raw_output}.\nMoving to keywords extraction.")   
         keywords_selected_pure = StemUtility.extract_keywords(keywords_selected_raw_output)
-        self.logger.debug(f"Interesting keywords found: {keywords_selected_pure}")   
+        self.logger.debug(f"Automatically detected keywords: {keywords_selected_pure}")   
         
         return keywords_selected_pure
 
@@ -658,7 +658,7 @@ class DefaultModeNetwork:
         self.logger.prompt(f"Prompt for conversation analysis:\n{perspective_explanation_prompt}")
         self.logger.murmur(f"Thinking about recent conversations...")   
         adaptation_explanation = self.pfc.invoke(perspective_explanation_prompt)
-        self.logger.monologue(f"Full explanation of the required adaptation: {adaptation_explanation}")   
+        self.logger.monologue(f"Full explanation of the required adaptation:\n{adaptation_explanation}")   
         return adaptation_explanation
 
     async def ponder(self) -> bool:
@@ -680,24 +680,24 @@ class DefaultModeNetwork:
             self.logger.murmur(f"Kingdom for a good book!")
             return False
 
-        self.logger.debug(f"All keywords: {all_keywords}. Moving to interesting keyword selection.")           
+        self.logger.debug(f"Moving to selecting interesting keywords from: {all_keywords}")           
         interesting_keywords = await self._interesting_keywords_selection(all_keywords)
-        self.logger.debug(f"Interesting keywords selected.")           
+        self.logger.debug(f"Interesting keywords selected: {interesting_keywords}")           
         memory_files, concatenated_memories = self._fetch_memory(interesting_keywords)
         self.logger.debug(f"Concatenated conversations received.")   
 
         if concatenated_memories:
-            self.logger.debug(f"Moving to analyze the conversaton histories.")           
+            self.logger.debug(f"Moving to analyze the conversation histories.")           
             adaptation_summary = await self._analyze_interaction(concatenated_memories)
             conclusion_file = os.path.join(self._conclusions_dir, f"conclusion_{StemUtility.get_timestamp()}.txt")
-            self.logger.debug(f"Conclusions saved to {conclusion_file}.")
+            self.logger.debug(f"Conclusions saved to {conclusion_file} .")
             StemUtility.memory_write(conclusion_file, adaptation_summary)
             if "**uninspiring**" not in adaptation_summary.lower():
                 self.logger.murmur(f"Discussion on {interesting_keywords} indeed brought a new perspective...")
                 self.overwhelmed.set()
-                self.logger.flag(f"overwhelmed: {self.overwhelmed.is_set()}")
+                self.logger.flag(f"Overwhelmed state: {self.overwhelmed.is_set()}")
             else:
-                self.logger.monologue(f"As per:\n{adaptation_summary}.\nNothing interesting has been found in {memory_files}.")
+                self.logger.monologue(f"As per:\n{adaptation_summary}\nNothing of interest has been found in {memory_files}.")
                 StemUtility.archive(conclusion_file)
         else:
             self.logger.error(f"Concatenated conversations turned out to be an empty string.")   
@@ -725,7 +725,7 @@ class ReflectiveEvolutionMonitor:
         """
 
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.debug(f"Instantiating {self.__class__.__name__}.")  
+        self.logger.info(f"Instantiating {self.__class__.__name__}")
     
         self.pfc = pfc
         
@@ -759,9 +759,9 @@ class ReflectiveEvolutionMonitor:
         """
 
         conclusions_pattern = os.path.join(self._conclusions_dir, "conclusion*")
-        self.logger.debug(f"Searching for following pattern: {conclusions_pattern}.")
+        self.logger.debug(f"Searching for following pattern:\n{conclusions_pattern}.")
         conclusion_files = glob(conclusions_pattern)
-        self.logger.debug(f"Following files found: {conclusion_files}.")
+        self.logger.debug(f"Following files found: {conclusion_files}")
 
         if not conclusion_files:
             self.logger.error("No conclusion files matching the pattern found.")
@@ -769,7 +769,7 @@ class ReflectiveEvolutionMonitor:
 
         # Process the first file from the matched conclusion files
         self._conclusion_file = conclusion_files[0]
-        self.logger.debug(f"Following file selected: {conclusion_files}.")
+        self.logger.debug(f"Conclusion file to be processed: {self._conclusion_file}")
         self._conclusions = StemUtility.memory_read(self._conclusion_file)
         return True
 
@@ -785,7 +785,7 @@ class ReflectiveEvolutionMonitor:
         """
 
         dream_content = self.pfc.invoke(dream_prompt)
-        self.logger.monologue(f"I had a dream:\n{dream_content}.")
+        self.logger.monologue(f"I had a dream:\n{dream_content}")
 
         try:
             stimulus_start = dream_content.index('**QUESTION**') + len('**QUESTION**')
@@ -822,13 +822,13 @@ class ReflectiveEvolutionMonitor:
         
         self.logger.info(f"Generating {num_dreams} dreams.")
         dreams_path = os.path.join(self._dream_storage_path, f"dream_{StemUtility.get_timestamp()}.txt")
-        self.logger.debug(f"Dreams for this sessions will be saved to: {dreams_path}.")        
+        self.logger.debug(f"Dreams for this sessions will be saved to: {dreams_path}")        
         dream_spinning_prompt = self._dream_spinning_prompt_template.replace("{adaptation_summary}", self._conclusions) 
         self.logger.prompt(f"Prompt for generating training material from conversation conclusions:\n{dream_spinning_prompt}.")   
 
         generated_dreams = 0
         while generated_dreams < num_dreams:
-            self.logger.info(f"Generating dream # {generated_dreams}.")
+            self.logger.info(f"Generating dream # {generated_dreams} of {num_dreams}.")
             dream = self._spin_dream(dream_spinning_prompt) 
             if dream:
                 with open(dreams_path, 'a') as file: 
@@ -870,13 +870,13 @@ class ReflectiveEvolutionMonitor:
             "--epochs", self._epochs
         ]
 
-        self.logger.murmur(f"Self-finetuning: Creating matrix")
-        self.logger.debug(f"Running command:\n{finetune_command}.")
+        self.logger.murmur(f"Self-finetuning: Creating LoRA")
+        self.logger.debug(f"Running command:\n{finetune_command}")
 
         try:
             subprocess.run(finetune_command, check=True)
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Self-finetuning session failed the return code {e.returncode}.")   
+            self.logger.error(f"Self-finetuning session failed the return code {e.returncode}")   
             return False
         
         # Export LoRA model command - output to llm_tmp.gguf
@@ -888,16 +888,16 @@ class ReflectiveEvolutionMonitor:
             "--lora-scaled", self._lora_to_integrate, self.lora_weight
         ]
 
-        self.logger.murmur(f"Self-finetuning: Merging weights")
-        self.logger.debug(f"Running command:\n{export_command}.")
+        self.logger.murmur(f"Self-finetuning: Merging base model with LoRA")
+        self.logger.debug(f"Running command:\n{export_command}")
 
         try:
             subprocess.run(export_command, check=True)
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"LoRA merge failed with the return code {e.returncode}.")   
+            self.logger.error(f"LoRA merge failed with the return code {e.returncode}")   
             return False        
 
-        self.logger.murmur(f"Self-finetuning: Swapping brain to a new one")
+        self.logger.murmur(f"Self-finetuning: Transplanting brain to a new one.")
         self.logger.info(f"Removing old {self._base_model_path}, moving {tmp_model_path} as new {self._base_model_path}.")
         StemUtility.transplantation(self._base_model_path, tmp_model_path)
         StemUtility.finetune_cleanup()
@@ -1005,7 +1005,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
 
         super().__init__(pfc, engaged_event, interaction_storage_path)
 
-        self.logger.debug(f"Instantiating {self.__class__.__name__} with interaction_storage_path: {interaction_storage_path}")
+        self.logger.info(f"Instantiating {self.__class__.__name__} with interaction_storage_path: {interaction_storage_path}")
 
         self.ready_for_input = asyncio.Event()
         self.ready_for_input.set()  # Initially set to ready
@@ -1027,12 +1027,12 @@ class LanguageProcessingModule(SensorySignalProcessing):
         
         
         self.logger.prompt(f"Conversation prompt template:\n{self._conversation_prompt}")        
-        self.logger.debug(f"Initiated interaction")        
+        self.logger.debug(f"Initiated interaction.")        
         
         while True:
             if not self.ready_for_input.is_set():
                 self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
-                self.logger.debug(f"Received input: {self.stimulus}")        
+                self.logger.debug(f"Received input:\n{self.stimulus}")        
 
                 if self.stimulus.lower() == config.interaction_break:
                     await self._end_interaction()
@@ -1041,9 +1041,10 @@ class LanguageProcessingModule(SensorySignalProcessing):
                 self._conversation_prompt += f"{self.stimulus} [/INST] "
                 self._interaction_history += f"User: {self.stimulus}\n"
                 
-                self.logger.monologue(f"LLM will receive: {self._conversation_prompt}")
-                self.logger.debug(f"Awaiting LLM response")
+                self.logger.monologue(f"LLM will receive following prompt:\n{self._conversation_prompt}")
+                self.logger.debug(f"Awaiting response...")
                 response = self.pfc.invoke(self._conversation_prompt)
+                self.logger.murmur(f"Response generated:\n{response}") 
                 print("AI:", response)
 
                 self._conversation_prompt += f"{response}</s><s> [INST] "
@@ -1088,7 +1089,7 @@ class LanguageProcessingModule(SensorySignalProcessing):
         self.logger.info(f"Interaction summarization started.")        
         self.logger.debug(f"Interaction history:\n{self._interaction_history}")    
         keywords_generation_prompt = self._keywords_generation_prompt_template.replace("{chat_history}", self._interaction_history)
-        self.logger.prompt(f"Prompt for generating keywords from conversation:\n{keywords_generation_prompt}.")          
+        self.logger.prompt(f"Prompt for generating keywords from conversation:\n{keywords_generation_prompt}")          
         keywords_generated_raw_output = self.pfc.invoke(keywords_generation_prompt)
         self.logger.monologue(f"Full text for summarizing conversation with keywords:\n{keywords_generated_raw_output}")  
         keywords_generated_pure = StemUtility.extract_keywords(keywords_generated_raw_output)
@@ -1118,14 +1119,14 @@ class LanguageProcessingModule(SensorySignalProcessing):
         This method waits for the system to be ready for input, then captures and stores user input.
         It clears the 'ready for input' state after capturing the input.
         """
-        self.logger.debug(f"Starting user input loop") 
+        self.logger.debug(f"Starting user input loop.") 
         while True:
             await self.ready_for_input.wait()
             self.stimulus = await asyncio.get_event_loop().run_in_executor(None, input, "Enter something: ")
-            self.logger.debug(f"User input received: {self.stimulus}")
+            self.logger.debug(f"User input received:\n{self.stimulus}")
             asyncio.create_task(self.start_interaction())
             self.ready_for_input.clear()
-            self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
+            self.logger.flag(f"Ready for input state: {self.ready_for_input.is_set()}")
 
 
 # Cognitive Feeback Router (CFR)
@@ -1163,7 +1164,7 @@ class CognitiveFeedbackRouter:
         """
         self.logger.debug("Starting _wakeup() procedure.")    
         self.logger.murmur("Just a second, I'm waking up...")
-        self.logger.debug(f"Initializing LLM model from {config.model_path}.")
+        self.logger.debug(f"Initializing LLM model from {config.model_path}")
         try:
             self.logger.debug(f"Loading LLM.")            
             self.pfc = LlamaCpp(model_path=config.model_path,
@@ -1177,7 +1178,7 @@ class CognitiveFeedbackRouter:
             raise
         self.logger.debug(f"LLM initialized.")                 
         self.overwhelmed.clear()
-        self.logger.flag(f"overwhelmed = {self.overwhelmed.is_set()}")
+        self.logger.flag(f"Overwhelmed status: {self.overwhelmed.is_set()}")
         self._sharpen_senses()
 
     async def attention_switch(self) -> None:
@@ -1191,7 +1192,7 @@ class CognitiveFeedbackRouter:
         self.logger.info(f"Starting infinite attention loop.") 
         while True:
             if self.overwhelmed.is_set():
-                self.logger.info(f"Overwhelmed state detected.") 
+                self.logger.info(f"Overwhelmed state: {self.overwhelmed.is_set()}") 
                 rem = ReflectiveEvolutionMonitor(pfc=self.pfc)
                 await rem.dream()
                 self._wakeup()
