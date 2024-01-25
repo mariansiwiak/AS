@@ -405,7 +405,8 @@ class StemUtility:
         #Final LoRA files to archive
         files_to_archive = [
             "checkpoint-LATEST.gguf",
-            "ggml-lora-LATEST-f32.gguf"
+            "ggml-lora-LATEST-f32.gguf",
+            "llama-2-13b-chat.Q8_0.gguf_bck"
         ]
 
         for file_name in files_to_archive:
