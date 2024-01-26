@@ -935,8 +935,8 @@ class ReflectiveEvolutionMonitor:
         self.logger.info(f"Self-finetuning session ended.")        
 
 
-# Sensory Signal Processing (SSP)
-class SensorySignalProcessing(ABC):
+# Sensory Processing (SP)
+class SensoryProcessing(ABC):
     """
     Abstract class for a stimulus processing module.
 
@@ -982,7 +982,7 @@ class SensorySignalProcessing(ABC):
         pass
 
 ## Language Processing Module (LPM)
-class LanguageProcessingModule(SensorySignalProcessing):
+class LanguageProcessingModule(SensoryProcessing):
     """
     A class that manages the interaction between a human user and a language learning model (LLM).
 
