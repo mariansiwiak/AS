@@ -131,7 +131,7 @@ def setup_logging(file_log_level: int, console_log_level: int) -> None:
 setup_logging(file_log_level=config.file_log_level, console_log_level=config.console_log_level)
 
 # Stem
-class StemUtility:
+class Stem:
     """
     A class for managing and retrieving predefined prompts.
 
@@ -190,13 +190,13 @@ class StemUtility:
             
         
         destination_dir = '_'.join([source_dir, archive_suffix])
-        directories_available = StemUtility.prepare_directory(destination_dir)
+        directories_available = Stem.prepare_directory(destination_dir)
         if not directories_available:
             return False
         
         destination_path = os.path.join(destination_dir, source_file)
         
-        logger = logging.getLogger('StemUtility')        
+        logger = logging.getLogger('Stem')        
         try:
             shutil.move(source_path, destination_path)
             return True
@@ -223,7 +223,7 @@ class StemUtility:
             bool: Information if the process has been successhul
         """
 
-        logger = logging.getLogger('StemUtility')
+        logger = logging.getLogger('Stem')
         
         try:
             os.makedirs(dir_path, exist_ok=True)
@@ -252,7 +252,7 @@ class StemUtility:
             file content
         """
         
-        logger = logging.getLogger('StemUtility')
+        logger = logging.getLogger('Stem')
         try:
             with open(file_path, 'r') as file:
                 if filetype == 'json':
@@ -283,7 +283,7 @@ class StemUtility:
             filetype (str): Type of the file to be read [json, text]
         """
 
-        logger = logging.getLogger('StemUtility')
+        logger = logging.getLogger('Stem')
         try:
             with open(file_path, "w") as file:
                 file.write(file_content)
@@ -307,7 +307,7 @@ class StemUtility:
                  a default prompt text is returned.
         """
 
-        prompts = StemUtility.memory_read('conversations/prompt_templates.json', 'json')
+        prompts = Stem.memory_read('conversations/prompt_templates.json', 'json')
         return prompts.get(key, "")
 
     @staticmethod
@@ -320,7 +320,7 @@ class StemUtility:
         
         """
         
-        logger = logging.getLogger('StemUtility')
+        logger = logging.getLogger('Stem')
         try:
             logger.debug(f"Checking if {new_model_path} exists.")
             if not os.path.exists(new_model_path):
@@ -390,17 +390,17 @@ class StemUtility:
         - Moves specific final LoRA files (checkpoint-LATEST.gguf, ggml-lora-LATEST-f32.gguf) to this subdirectory.
         - Removes any remaining 'checkpoint-*' and 'ggml-lora-*' files from the logs directory.
 
-        This method uses the 'StemUtility.get_timestamp()' method to generate a unique timestamp for the subdirectory.
+        This method uses the 'Stem.get_timestamp()' method to generate a unique timestamp for the subdirectory.
         It ensures that only the specified final files are archived and the rest are cleaned up, maintaining a neat logs directory.
         
         Exceptions during file removal are caught and logged for debugging purposes.
         """        
-        logger = logging.getLogger('StemUtility')
+        logger = logging.getLogger('Stem')
         
         logs_dir = config.log_dir
-        timestamp = StemUtility.get_timestamp()  # using your timestamp function
+        timestamp = Stem.get_timestamp()  # using your timestamp function
         finetuning_dir = os.path.join(logs_dir, f"finetuning_{timestamp}")
-        StemUtility.prepare_directory(finetuning_dir)
+        Stem.prepare_directory(finetuning_dir)
         
         #Final LoRA files to archive
         files_to_archive = [
@@ -493,7 +493,7 @@ class ShortTermMemory:
         self.logger.debug(f"Searching in {self._stm_path} for files related to keywords: {keywords}.")
 
 
-        data = StemUtility.memory_read(self._stm_path, 'json')
+        data = Stem.memory_read(self._stm_path, 'json')
         if data: 
             self.logger.debug(f"Loaded short term memory.")
         else:
@@ -521,7 +521,7 @@ class ShortTermMemory:
         
         conversations = ""
         for filename in filenames:
-            file_content = StemUtility.memory_read(filename)
+            file_content = Stem.memory_read(filename)
             date_str = re.search(r'conversation_(\d{8})(\d{6})\.txt$', filename)
             if date_str:
                 # Parse the date and time
@@ -568,7 +568,7 @@ class ShortTermMemory:
         """
         self.logger.debug(f"Reading all keywords from {self._stm_path}.")
 
-        data = StemUtility.memory_read(self._stm_path, 'json')
+        data = Stem.memory_read(self._stm_path, 'json')
         if data and len(data) > 0:
             return list(data.keys())
         else:
@@ -600,10 +600,10 @@ class DefaultModeNetwork:
         self.engaged = engaged_event
         
         self._conclusions_dir = config.conclusions_dir
-        StemUtility.prepare_directory(self._conclusions_dir)          
+        Stem.prepare_directory(self._conclusions_dir)          
 
-        self._keyword_selection_prompt_template = StemUtility.get_prompt("keyword_selection")
-        self._perspective_explanation_prompt_template = StemUtility.get_prompt("perspective_explanation")
+        self._keyword_selection_prompt_template = Stem.get_prompt("keyword_selection")
+        self._perspective_explanation_prompt_template = Stem.get_prompt("perspective_explanation")
     
     
     async def _interesting_keywords_selection(self, keywords) -> list:
@@ -623,7 +623,7 @@ class DefaultModeNetwork:
         self.logger.debug(f"Asking LLM to select interesting keywords.")   
         keywords_selected_raw_output = self.pfc.invoke(keywords_selection_prompt)
         self.logger.monologue(f"LLM selected interesting keywords:\n{keywords_selected_raw_output}.\nMoving to keywords extraction.")   
-        keywords_selected_pure = StemUtility.extract_keywords(keywords_selected_raw_output)
+        keywords_selected_pure = Stem.extract_keywords(keywords_selected_raw_output)
         self.logger.debug(f"Automatically detected keywords: {keywords_selected_pure}")   
         
         return keywords_selected_pure
@@ -689,16 +689,16 @@ class DefaultModeNetwork:
         if concatenated_memories:
             self.logger.debug(f"Moving to analyze the conversation histories.")           
             adaptation_summary = await self._analyze_interaction(concatenated_memories)
-            conclusion_file = os.path.join(self._conclusions_dir, f"conclusion_{StemUtility.get_timestamp()}.txt")
+            conclusion_file = os.path.join(self._conclusions_dir, f"conclusion_{Stem.get_timestamp()}.txt")
             self.logger.debug(f"Conclusions saved to {conclusion_file} .")
-            StemUtility.memory_write(conclusion_file, adaptation_summary)
+            Stem.memory_write(conclusion_file, adaptation_summary)
             if "**uninspiring**" not in adaptation_summary.lower():
                 self.logger.murmur(f"Discussion on {interesting_keywords} indeed brought a new perspective...")
                 self.overwhelmed.set()
                 self.logger.flag(f"Overwhelmed state: {self.overwhelmed.is_set()}")
             else:
                 self.logger.monologue(f"As per:\n{adaptation_summary}\nNothing of interest has been found in {memory_files}.")
-                StemUtility.archive(conclusion_file)
+                Stem.archive(conclusion_file)
         else:
             self.logger.error(f"Concatenated conversations turned out to be an empty string.")   
         self.logger.debug(f"Interesting or not, forgetting conversations about {interesting_keywords}.")   
@@ -732,14 +732,14 @@ class ReflectiveEvolutionMonitor:
         self._base_model_path = config.model_path
 
         self._conclusions_dir = config.conclusions_dir
-        StemUtility.prepare_directory(self._conclusions_dir)
+        Stem.prepare_directory(self._conclusions_dir)
         self._conclusion_file = None
         
         self._dream_storage_path = config.context_dir
-        StemUtility.prepare_directory(self._dream_storage_path)
+        Stem.prepare_directory(self._dream_storage_path)
 
-        self._dream_spinning_prompt_template = StemUtility.get_prompt("dream_spinning")
-        self._dream_prompt_template = StemUtility.get_prompt("dream_template")
+        self._dream_spinning_prompt_template = Stem.get_prompt("dream_spinning")
+        self._dream_prompt_template = Stem.get_prompt("dream_template")
 
         self._conclusions = ''
         
@@ -770,7 +770,7 @@ class ReflectiveEvolutionMonitor:
         # Process the first file from the matched conclusion files
         self._conclusion_file = conclusion_files[0]
         self.logger.debug(f"Conclusion file to be processed: {self._conclusion_file}")
-        self._conclusions = StemUtility.memory_read(self._conclusion_file)
+        self._conclusions = Stem.memory_read(self._conclusion_file)
         return True
 
     def _spin_dream(self, dream_prompt: str) -> Union[str, None]:
@@ -793,11 +793,11 @@ class ReflectiveEvolutionMonitor:
             end_tag = dream_content.index('**END**')
     
             dreamt_stimulus = dream_content[stimulus_start:response_start].strip()
-            dreamt_stimulus = StemUtility.clean_string(dreamt_stimulus)
+            dreamt_stimulus = Stem.clean_string(dreamt_stimulus)
             self.logger.prompt(f"Dreamt stimulus:\n{dreamt_stimulus}")
             
             dreamt_response = dream_content[response_start + len('**RESPONSE**'):end_tag].strip()
-            dreamt_response = StemUtility.clean_string(dreamt_response)
+            dreamt_response = Stem.clean_string(dreamt_response)
             self.logger.prompt(f"Dreamt response:\n{dreamt_response}")
 
             if len(dreamt_stimulus) > 0 and len(dreamt_response) > 0 and dreamt_response != '**END***'
@@ -824,7 +824,7 @@ class ReflectiveEvolutionMonitor:
         """
         
         self.logger.info(f"Generating {num_dreams} dreams.")
-        dreams_path = os.path.join(self._dream_storage_path, f"dream_{StemUtility.get_timestamp()}.txt")
+        dreams_path = os.path.join(self._dream_storage_path, f"dream_{Stem.get_timestamp()}.txt")
         self.logger.debug(f"Dreams for this sessions will be saved to: {dreams_path}")        
         dream_spinning_prompt = self._dream_spinning_prompt_template.replace("{adaptation_summary}", self._conclusions) 
         self.logger.prompt(f"Prompt for generating training material from conversation conclusions:\n{dream_spinning_prompt}.")   
@@ -902,8 +902,8 @@ class ReflectiveEvolutionMonitor:
 
         self.logger.murmur(f"Self-finetuning: Transplanting brain to a new one.")
         self.logger.info(f"Removing old {self._base_model_path}, moving {tmp_model_path} as new {self._base_model_path}.")
-        StemUtility.transplantation(self._base_model_path, tmp_model_path)
-        StemUtility.finetune_cleanup()
+        Stem.transplantation(self._base_model_path, tmp_model_path)
+        Stem.finetune_cleanup()
             
     def _dream_prunning(self) -> None:
         """
@@ -913,8 +913,8 @@ class ReflectiveEvolutionMonitor:
         self.logger.info("Archiving dream materials.")
         for file_name in os.listdir(self._dream_storage_path):
             if file_name[:6] == 'dream_':
-                StemUtility.archive(self._dream_storage_path, file_name)
-        StemUtility.archive(self._conclusion_file)
+                Stem.archive(self._dream_storage_path, file_name)
+        Stem.archive(self._conclusion_file)
     
     async def dream(self) -> Optional[bool]:
         """
@@ -1013,10 +1013,10 @@ class LanguageProcessingModule(SensoryProcessing):
         self.ready_for_input = asyncio.Event()
         self.ready_for_input.set()  # Initially set to ready
 
-        self._conversation_prompt = StemUtility.get_prompt("human_interaction")
+        self._conversation_prompt = Stem.get_prompt("human_interaction")
         self._interaction_history = ''
 
-        self._keywords_generation_prompt_template = StemUtility.get_prompt("keyword_generation")
+        self._keywords_generation_prompt_template = Stem.get_prompt("keyword_generation")
     
     async def start_interaction(self) -> None:
         """
@@ -1072,7 +1072,7 @@ class LanguageProcessingModule(SensoryProcessing):
         """
         self.logger.debug(f"Conversation cleanup started.")        
         self._save_interaction_history()
-        self._conversation_prompt = StemUtility.get_prompt("human_interaction")
+        self._conversation_prompt = Stem.get_prompt("human_interaction")
         self._interaction_history = ''
         self.ready_for_input.set()
         self.logger.flag(f"ready_for_input: {self.ready_for_input.is_set()}")
@@ -1095,7 +1095,7 @@ class LanguageProcessingModule(SensoryProcessing):
         self.logger.prompt(f"Prompt for generating keywords from conversation:\n{keywords_generation_prompt}")          
         keywords_generated_raw_output = self.pfc.invoke(keywords_generation_prompt)
         self.logger.monologue(f"Full text for summarizing conversation with keywords:\n{keywords_generated_raw_output}")  
-        keywords_generated_pure = StemUtility.extract_keywords(keywords_generated_raw_output)
+        keywords_generated_pure = Stem.extract_keywords(keywords_generated_raw_output)
         
         return keywords_generated_pure
 
@@ -1107,9 +1107,9 @@ class LanguageProcessingModule(SensoryProcessing):
         """
         self.logger.info(f"Started conversation saving.")        
         interaction_keywords = self._summarize_interaction()
-        memory_path = os.path.join(self._interaction_storage_path, f"conversation_{StemUtility.get_timestamp()}.txt")
+        memory_path = os.path.join(self._interaction_storage_path, f"conversation_{Stem.get_timestamp()}.txt")
         self.logger.debug(f"This conversation will be saved to: {memory_path}")                
-        StemUtility.memory_write(memory_path, self._interaction_history)
+        Stem.memory_write(memory_path, self._interaction_history)
 
         # Update the ShortTermMemory with the conversation and its keywords
         stm = ShortTermMemory()
