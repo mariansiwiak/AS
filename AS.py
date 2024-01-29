@@ -410,11 +410,11 @@ class Stem:
         ]
 
         for file_name in files_to_archive:
-            src_path = os.path.join(logs_dir, file_name)
-            if os.path.exists(src_path):
-                shutil.move(src_path, finetuning_dir)
+            if os.path.exists(file_name): 
+                shutil.move(file_name, os.path.join(finetuning_dir, file_name))
+                logger.info(f"Moved file: {file_name} to {finetuning_dir}")
             else:
-                logger.debug(f"File not found: {file_name}")
+                logger.warning(f"File not found in the current directory: {file_name}")
 
         # Clean up the remaining files
         try:
