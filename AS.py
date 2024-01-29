@@ -800,7 +800,7 @@ class ReflectiveEvolutionMonitor:
             dreamt_response = Stem.clean_string(dreamt_response)
             self.logger.prompt(f"Dreamt response:\n{dreamt_response}")
 
-            if len(dreamt_stimulus) > 0 and len(dreamt_response) > 0 and dreamt_response != '**END***'
+            if len(dreamt_stimulus) > 0 and len(dreamt_response) > 0 and dreamt_response != '**END**':
                 dream = self._dream_prompt_template.replace("{stimulus}", dreamt_stimulus) 
                 dream = dream.replace("{response}", dreamt_response) 
                 return dream
