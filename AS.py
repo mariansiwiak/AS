@@ -399,8 +399,8 @@ class Stem:
         
         logs_dir = config.log_dir
         timestamp = Stem.get_timestamp()  # using your timestamp function
-        finetuning_dir = os.path.join(logs_dir, f"finetuning_{timestamp}")
-        Stem.prepare_directory(finetuning_dir)
+        fintuning_archive = os.path.join(logs_dir, f"finetuning_{timestamp}")
+        Stem.prepare_directory(fintuning_archive)
         
         #Final LoRA files to archive
         files_to_archive = [
@@ -411,8 +411,8 @@ class Stem:
 
         for file_name in files_to_archive:
             if os.path.exists(file_name): 
-                shutil.move(file_name, os.path.join(finetuning_dir, file_name))
-                logger.info(f"Moved file: {file_name} to {finetuning_dir}")
+                shutil.move(file_name, os.path.join(fintuning_archive, file_name))
+                logger.info(f"Moved file: {file_name} to {fintuning_archive}")
             else:
                 logger.warning(f"File not found in the current directory: {file_name}")
 
