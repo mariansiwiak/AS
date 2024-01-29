@@ -1,29 +1,29 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[14]:
-
-
 import scipy.stats as stats
 
-def confidence_interval_for_proportion(successes: int, n: int, confidence=0.99):
+def binomial_confidence_interval(successes: int, n: int, confidence: float = 0.99):
     """
-    Calculate the confidence interval for a proportion.
+    Calculate the binomial confidence interval.
 
     :param successes: Number of successes in the sample.
     :param n: Total sample size.
-    :param confidence: Confidence level, default is 0.95.
+    :param confidence: Confidence level.
     :return: A tuple containing the lower and upper bounds of the confidence interval.
     """
     if n == 0:
         raise ValueError("Sample size must be greater than 0")
 
-    elif successes > n:
-        raise ValueError("Sample size must be greater than number of sucesses")
-    
-    p_hat = successes / n
-    z = stats.norm.ppf((1 + confidence) / 2)
-    margin_of_error = z * (p_hat * (1 - p_hat) / n)**0.5
+    if successes > n:
+        raise ValueError("Number of successes must not exceed sample size")
 
-    print(p_hat - margin_of_error, p_hat + margin_of_error)
+    # Calculate the confidence interval
+    interval = stats.binom.interval(confidence, n, successes / n)
 
+    # Normalize the interval bounds to the proportion
+    lower_bound = interval[0] / n
+    upper_bound = interval[1] / n
+
+    return lower_bound, upper_bound
+
+# Example usage
+ci = binomial_confidence_interval(16, 20)
+print(ci)
