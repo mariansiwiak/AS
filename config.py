@@ -39,6 +39,9 @@ file_log_level = 10
 # Granularity level of logs printed to console
 console_log_level = 10
 
+# Directory containing conversation's histories
+conversations_dir = 'conversations'
+
 # Directory containing conversation conclusions
 conclusions_dir = 'conclusions'
 
