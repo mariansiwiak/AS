@@ -1105,12 +1105,12 @@ class LanguageProcessingModule(SensoryProcessing):
 
         The interaction history is saved with a timestamp and a summary of the interaction is generated.
         """
-        self.logger.info(f"Started conversation saving.")        
-        interaction_keywords = self._summarize_interaction()
-        memory_path = os.path.join(self._interaction_storage_path, f"conversation_{Stem.get_timestamp()}.txt")
         self.logger.debug(f"This conversation will be saved to: {memory_path}")                
         Stem.memory_write(memory_path, self._interaction_history)
-
+        self.logger.debug(f"Starting conversation saving.")        
+        interaction_keywords = self._summarize_interaction()
+        memory_path = os.path.join(self._interaction_storage_path, f"conversation_{Stem.get_timestamp()}.txt")
+        
         # Update the ShortTermMemory with the conversation and its keywords
         stm = ShortTermMemory()
         stm.memorize_keywrods(interaction_keywords, memory_path)
