@@ -275,7 +275,7 @@ class Stem:
 
     @staticmethod
     def memory_write(file_path, file_content) -> None:
-        """Function for accessing files, mainly  related to the system memory.
+        """Function for saving files, mainly  related to the system memory.
         Performs checks and ensures that lack of the file won't cause overall program termination. 
 
         Args: 
@@ -450,7 +450,7 @@ class ShortTermMemory:
             with open(self._stm_path, 'w') as file:
                 json.dump({}, file)
 
-    def memorize_keywrods(self, keywords: list, filename: str) -> None:
+    def memorize_keywords(self, keywords: list, filename: str) -> None:
         """
         Memorizes a conversation file under given keywords.
 
@@ -1105,15 +1105,16 @@ class LanguageProcessingModule(SensoryProcessing):
 
         The interaction history is saved with a timestamp and a summary of the interaction is generated.
         """
+        
+        memory_path = os.path.join(self._interaction_storage_path, f"conversation_{Stem.get_timestamp()}.txt")
         self.logger.debug(f"This conversation will be saved to: {memory_path}")                
         Stem.memory_write(memory_path, self._interaction_history)
         self.logger.debug(f"Starting conversation saving.")        
         interaction_keywords = self._summarize_interaction()
-        memory_path = os.path.join(self._interaction_storage_path, f"conversation_{Stem.get_timestamp()}.txt")
         
         # Update the ShortTermMemory with the conversation and its keywords
         stm = ShortTermMemory()
-        stm.memorize_keywrods(interaction_keywords, memory_path)
+        stm.memorize_keywords(interaction_keywords, memory_path)
     
     async def get_user_input(self) -> None:
         """
