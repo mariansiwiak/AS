@@ -1217,22 +1217,27 @@ class CognitiveFeedbackRouter:
             else:
                 await asyncio.sleep(1)                
 
-AS = CognitiveFeedbackRouter()
-asyncio.run(AS.attention_switch())
+#AS = CognitiveFeedbackRouter()
+#asyncio.run(AS.attention_switch())
 
-#pfc = LlamaCpp(model_path=config.model_path, temperature=config.model_temp, n_ctx=4096, max_tokens=4000, n_batch=config.available_threads)
-#file_path = 'conversations/conversation_20000101010101.txt'
+pfc = LlamaCpp(model_path=config.model_path, temperature=config.model_temp, n_ctx=4096, max_tokens=4000, n_batch=config.available_threads)
+file_pattern = 'conversations/conversation_*.txt'
 #file_path = 'conclusions/conclusion_20000101010101.txt'
-#with open(file_path, 'r') as file:
-#    file_contents = file.read()
+DMN = DefaultModeNetwork(pfc)
+
+for file_path in glob(file_pattern):
+    with open(file_path, 'r') as file:
+        file_contents = file.read()
+        conclusion = asyncio.run(DMN._analyze_interaction(file_contents))
+        conclusion_file = os.path.join(config.conclusions_dir, f"conclusion_{Stem.get_timestamp()}.txt")
+        Stem.memory_write(conclusion_file, adaptation_summary)
+
 
 
 #LPM = LanguageProcessingModule(pfc)
 #LPM._interaction_history = file_contents
 #LPM._summarize_interaction()
 
-#DMN = DefaultModeNetwork(pfc)
-#asyncio.run(DMN._analyze_interaction(file_contents))
 
 
 #REM = ReflectiveEvolutionMonitor(pfc=pfc)
