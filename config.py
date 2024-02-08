@@ -1,7 +1,7 @@
 from os import cpu_count
 
 # Location of the LLM file to serve as PFC
-model_path='llama-2-13b-chat.Q8_0.gguf'
+model_path = r"llama-2-13b-chat.Q8_0.gguf"
 
 # Model temperature
 model_temp = 1
@@ -13,19 +13,25 @@ dmn_countdown = 120
 interaction_timeout = 360
 
 # End conversation keyword to be used to avoid waiting till interaction timeout
-interaction_break = "end_chat"
+interaction_break = 'end_chat'
 
 # Number of threads to be used in self-finetuning session
 available_threads = cpu_count()
 
 # Number of self-finetuning session training materials to be generated 
-dreams_to_generate_num = 500
+dreams_to_generate_num = 1
 
 # Location of folder with finetune-realted binaries
-finetune_dir = "finetune_bins"
+finetune_dir = r"finetune_bins"
+
+# Binary used for finetuning
+finetune_tool = r"finetune"
+
+# Binary used for merging LoRA weights with the base model
+lora_tool = r"export-lora"
 
 # Number of epochs in a self-finetuning session
-epochs = 5
+epochs = 1
 
 # File with lora parameters to integrate into base model
 lora_to_integrate = r"ggml-lora-LATEST-f32.gguf"
@@ -40,13 +46,19 @@ file_log_level = 10
 console_log_level = 10
 
 # Directory containing conversation's histories
-conversations_dir = 'conversations'
+conversations_dir = r"conversations"
 
 # Directory containing conversation conclusions
-conclusions_dir = 'conclusions'
+conclusions_dir = r"conclusions"
 
 # Directory containing generated training materials
-context_dir = 'dreams'
+context_dir = r"dreams"
 
 #Log directory
-log_dir = 'logs'
+log_dir = r"logs"
+
+# Location of the JSON file serving as short term memory
+stm_path = r"conversations/short-term-memory.json"
+
+# Markers dividing different parts of generated dreams - needs to be aligned with a relevant prompt
+dream_markers = {'stimulus': '**QUESTION**', 'reaction': '**RESPONSE**', 'end': '**END**'}
