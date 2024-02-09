@@ -1,0 +1,1 @@
+Following a successful self-finetuning session, the training materials used in the process are archived in this folder. This archival system allows for historical tracking of the training materials and the finetuning process.
