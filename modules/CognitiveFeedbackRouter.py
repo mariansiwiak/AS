@@ -87,7 +87,7 @@ class CognitiveFeedbackRouter:
                     dmn = DefaultModeNetwork(self.pfc, self.overwhelmed, self.engaged)
                     await dmn.ponder()
                     self.engaged.clear()
-                    self._sharpen_senses()
+                    await self._sharpen_senses()
                     self.logger.debug(f"Default Mode quit.")                                                                                                 
             else:
                 await asyncio.sleep(1)
